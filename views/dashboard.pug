@@ -1,0 +1,12 @@
+extends layout
+
+block content
+  h1 Bienvenido #{user.nombre}
+  p Rol: #{user.rol}
+
+  ul
+    li: a(href="#") Gestión de Pacientes
+    li: a(href="#") Nueva Admisión
+    li: a(href="#") Evaluación de Enfermería
+    li: a(href="#") Evaluación Médica
+    li: a(href="/usuarios/login") Cerrar sesión

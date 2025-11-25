@@ -1,0 +1,17 @@
+extends layout
+
+block content
+  .login-box
+    h1 Ingreso al Sistema
+
+    if error
+      p(style="color:red") #{error}
+
+    form(action="/usuarios/login" method="POST")
+      label Email
+      input(type="text" name="email" required)
+
+      label Contraseña
+      input(type="password" name="password" required)
+
+      button(type="submit") Ingresar
