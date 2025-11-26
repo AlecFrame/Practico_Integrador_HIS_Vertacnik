@@ -39,6 +39,7 @@ table td {
 table td,
 table th {
     text-align: center;
+    align-content: center;
     justify-items: center;
     justify-content: center;
     gap: .5rem !important;
@@ -75,4 +76,8 @@ table th {
 
 .hospital-maxw400 {
     max-width:400px;
+}
+
+.error-page {
+  margin-top: 100px;
 }
