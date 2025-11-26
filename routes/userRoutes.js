@@ -1,10 +1,12 @@
 import express from 'express';
-import { loginView, loginPost, dashboard } from '../controllers/userController.js';
+import { loginView, loginPost, logout, dashboard } from '../controllers/userController.js';
+import { requireLogin, isLogged } from '../middleware/auth.js';
 
 const router = express.Router();
 
-router.get('/login', loginView);
+router.get('/login', isLogged, loginView);
 router.post('/login', loginPost);
-router.get('/dashboard', dashboard);
+router.post("/logout", logout);
+router.get('/dashboard', requireLogin, dashboard);
 
 export default router;

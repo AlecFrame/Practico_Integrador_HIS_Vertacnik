@@ -1,0 +1,32 @@
+//- Si el usuario está logueado
+if user
+  .dropdown.ms-auto
+    a.d-flex.align-items-center.text-decoration-none.dropdown-toggle(
+      href="#"
+      role="button"
+      id="userDropdown"
+      data-bs-toggle="dropdown"
+      aria-expanded="false"
+    )
+
+      //- Mostrar avatar si existe
+      if user.avatar
+        img.rounded-circle(
+          src=user.avatar
+          alt="Perfil"
+          style="width:32px;height:32px;"
+        )
+      else
+        //- Inicial del nombre
+        - const inicial = user.nombre ? user.nombre[0].toUpperCase() : "?"
+        .rounded-circle.bg-primary.text-white.d-flex.align-items-center.justify-content-center(
+          style="width:32px;height:32px;"
+        ) #{inicial}
+
+      //- Nombre + Rol
+      span.ms-2.text-dark #{user.rol}: #{user.nombre} #{user.apellido}
+
+    ul.dropdown-menu.dropdown-menu-end(aria-labelledby="userDropdown")
+      li
+        form(action="/usuarios/logout" method="POST" class="m-0")
+          button.dropdown-item(type="submit") Cerrar sesión

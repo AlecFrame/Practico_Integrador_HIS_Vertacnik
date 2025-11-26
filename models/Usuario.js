@@ -12,7 +12,8 @@ const Usuario = sequelize.define('Usuario', {
     email: { type: DataTypes.STRING, unique: true },
     clave: DataTypes.STRING,
     rol: DataTypes.ENUM('admin', 'recepcion', 'enfermeria', 'medico'),
-    visible: DataTypes.TINYINT
+    visible: DataTypes.TINYINT,
+    avatar: DataTypes.STRING
 });
 
 export default Usuario;

@@ -6,7 +6,8 @@
   "type": "module",
   "scripts": {
     "start": "nodemon app.js",
-    "test": "runtest"
+    "test": "node app.js",
+    "clave": "node ./controllers/genHash.js"
   },
   "keywords": [
     "milanesa"
@@ -20,6 +21,7 @@
     "bcrypt": "^6.0.0",
     "express": "^5.1.0",
     "express-session": "^1.18.2",
+    "multer": "^2.0.2",
     "mysql2": "^3.15.3",
     "pug": "^3.0.3",
     "sequelize": "^6.37.7",

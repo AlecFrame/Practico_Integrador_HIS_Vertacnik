@@ -1,12 +1,9 @@
 extends layout
 
 block content
-  h1 Bienvenido #{user.nombre}
-  p Rol: #{user.rol}
+  h1.mb-3 Bienvenido, #{user.nombre} #{user.apellido}
+  p.text-muted Rol: #{user.rol}
+  p.text-muted Email: #{user.email}
+  hr
 
-  ul
-    li: a(href="#") Gestión de Pacientes
-    li: a(href="#") Nueva Admisión
-    li: a(href="#") Evaluación de Enfermería
-    li: a(href="#") Evaluación Médica
-    li: a(href="/usuarios/login") Cerrar sesión
+  p.mt-4 Bienvenido al sistema HIS de internación. Seleccioná una opción del menú lateral para comenzar.

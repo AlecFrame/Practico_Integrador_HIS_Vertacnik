@@ -1,23 +1,57 @@
+import bcrypt from "bcrypt";
+import Usuario from "../models/Usuario.js";
+
 export const loginView = (req, res) => {
-    res.render('login');
+    res.render("login");
 };
 
-export const loginPost = (req, res) => {
+export const loginPost = async (req, res) => {
     const { email, password } = req.body;
 
-    // Login extremadamente básico solo para arrancar
-    if (email === 'admin@his.com' && password === '1234') {
-        req.session.user = { nombre: 'Administrador', rol: 'admin' };
-        return res.redirect('/usuarios/dashboard');
+    const usuario = await Usuario.findOne({ where: { email } });
+
+    if (!usuario) {
+        return res.render("login", { error: "Usuario no encontrado" });
     }
 
-    return res.render('login', { error: 'Credenciales inválidas' });
+    if (usuario.visible === 0) {
+        return res.render("login", { error: "Usuario inhabilitado" });
+    }
+
+    // usuario.clave = hash almacenado en BD
+    const coincide = await bcrypt.compare(password, usuario.clave);
+
+    if (!coincide) {
+        return res.render("login", { error: "Contraseña incorrecta" });
+    }
+
+    // Login correcto
+    req.session.user = {
+        id: usuario.idUsuario,
+        nombre: usuario.nombre,
+        apellido: usuario.apellido,
+        email: usuario.email,
+        rol: usuario.rol
+    };
+
+    res.redirect("/usuarios/dashboard");
+};
+
+export const logout = (req, res) => {
+    req.session.destroy((err) => {
+        if (err) {
+            console.error("Error cerrando sesión:", err);
+        }
+        res.redirect("/usuarios/login");
+    });
 };
 
 export const dashboard = (req, res) => {
-    if (!req.session.user) return res.redirect('/usuarios/login');
+    if (!req.session.user) {
+        return res.redirect("/usuarios/login");
+    }
 
-    res.render('dashboard', {
-        user: req.session.user
+    res.render("dashboard", { 
+        user: req.session.user 
     });
 };

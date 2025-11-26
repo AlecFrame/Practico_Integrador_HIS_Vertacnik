@@ -1,0 +1,38 @@
+extends ../layout
+
+block content
+  .container
+    h1 Editar Paciente
+
+    form(method="POST")
+      .mb-3
+        label.form-label Nombre
+        input.form-control(type="text" name="nombre" value=paciente.nombre required)
+
+      .mb-3
+        label.form-label Apellido
+        input.form-control(type="text" name="apellido" value=paciente.apellido required)
+
+      .mb-3
+        label.form-label DNI
+        input.form-control(type="text" name="dni" value=paciente.dni required)
+
+      .mb-3
+        label.form-label Fecha de Nacimiento
+        input.form-control(type="date" name="fechaNacimiento" value=paciente.fechaNacimiento.toISOString().slice(0,10))
+
+      .mb-3
+        label.form-label Sexo
+        select.form-control(name="sexo")
+          option(value="M" selected=paciente.sexo==="M") Masculino
+          option(value="F" selected=paciente.sexo==="F") Femenino
+
+      .mb-3
+        label.form-label Teléfono
+        input.form-control(type="text" name="telefono" value=paciente.telefono)
+
+      .mb-3
+        label.form-label Dirección
+        input.form-control(type="text" name="direccion" value=paciente.direccion)
+
+      button.btn.btn-primary(type="submit") Actualizar

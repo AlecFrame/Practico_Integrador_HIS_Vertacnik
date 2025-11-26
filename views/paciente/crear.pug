@@ -1,0 +1,41 @@
+extends ../layout
+
+block content
+  .container
+    h1 Nuevo Paciente
+
+    if error
+      p.text-danger #{error}
+
+    form(method="POST")
+      .mb-3
+        label.form-label Nombre
+        input.form-control(type="text" name="nombre" required)
+
+      .mb-3
+        label.form-label Apellido
+        input.form-control(type="text" name="apellido" required)
+
+      .mb-3
+        label.form-label DNI
+        input.form-control(type="text" name="dni" required)
+
+      .mb-3
+        label.form-label Fecha de Nacimiento
+        input.form-control(type="date" name="fechaNacimiento" required)
+
+      .mb-3
+        label.form-label Sexo
+        select.form-control(name="sexo")
+          option(value="M") Masculino
+          option(value="F") Femenino
+
+      .mb-3
+        label.form-label Teléfono
+        input.form-control(type="text" name="telefono")
+
+      .mb-3
+        label.form-label Dirección
+        input.form-control(type="text" name="direccion")
+
+      button.btn.btn-success(type="submit") Guardar
