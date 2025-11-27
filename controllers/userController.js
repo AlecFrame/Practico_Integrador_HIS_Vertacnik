@@ -31,10 +31,11 @@ export const loginPost = async (req, res) => {
         nombre: usuario.nombre,
         apellido: usuario.apellido,
         email: usuario.email,
-        rol: usuario.rol
+        rol: usuario.rol,
+        avatar: usuario.avatar
     };
 
-    res.redirect("/usuarios/dashboard");
+    res.redirect("/users/dashboard");
 };
 
 export const logout = (req, res) => {
@@ -42,13 +43,13 @@ export const logout = (req, res) => {
         if (err) {
             console.error("Error cerrando sesión:", err);
         }
-        res.redirect("/usuarios/login");
+        res.redirect("/users/login");
     });
 };
 
 export const dashboard = (req, res) => {
     if (!req.session.user) {
-        return res.redirect("/usuarios/login");
+        return res.redirect("/users/login");
     }
 
     res.render("dashboard", { 

@@ -25,7 +25,7 @@ html
           h5.fw-bold.mb-3 Menú de navegación
           ul.nav.flex-column
             li.nav-item.mb-2
-              a.nav-link(href="/usuarios/dashboard") Inicio
+              a.nav-link(href="/users/dashboard") Inicio
 
             li.nav-item.mb-2
               a.nav-link(href="/pacientes") Pacientes
@@ -41,10 +41,10 @@ html
 
             if user.rol === "admin"
               li.nav-item.mb-2
-                a.nav-link(href="/admin/usuarios") Gestión Usuarios
+                a.nav-link(href="/usuarios") Gestión Usuarios
 
             li.nav-item.mt-4
-              form(action="/usuarios/logout" method="POST")
+              form(action="/users/logout" method="POST")
                 button.btn.btn-outline-danger.w-100(type="submit") Cerrar sesión
 
       // CONTENIDO A LA DERECHA

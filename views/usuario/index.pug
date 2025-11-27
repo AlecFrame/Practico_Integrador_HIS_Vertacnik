@@ -1,0 +1,490 @@
+extends ../layout
+
+block content
+  h1(style="justify-self: center;") Gestión de Usuarios
+
+  .d-flex.justify-content-between.align-items-center
+    .d-flex.justify-content-between.align-items-center.mt-3
+      .btn-group
+        a.btn.btn-outline-primary(
+          href="/usuarios?estado=todos"
+          class=estado==="todos" ? "active" : ""
+        ) Todos
+
+        a.btn.btn-outline-success(
+          href="/usuarios?estado=activos"
+          class=estado==="activos" ? "active" : ""
+        ) Activos
+
+        a.btn.btn-outline-secondary(
+          href="/usuarios?estado=inactivos"
+          class=estado==="inactivos" ? "active" : ""
+        ) Inactivos
+
+    //- BUSCADOR
+    form(method="GET" action="/usuarios" class="d-flex gap-2 mt-3")
+      input.form-control(
+        type="text"
+        name="buscar"
+        style="width: 300px;"
+        placeholder="Buscar por nombre, apellido o email"
+        value=buscar
+      )
+
+      //- Mantener el filtro actual
+      input(type="hidden" name="estado" value=estado)
+
+      button.btn.btn-outline-primary(type="submit") Buscar
+
+    button.btn.btn-success.mx-3.mt-3(
+      type="button"
+      data-bs-toggle="modal"
+      data-bs-target="#modalCrearUsuario"
+    ) + Nuevo Usuario
+
+  table.table.table-striped.mt-3
+    thead
+      tr
+        th ID
+        th Avatar
+        th Nombre
+        th Email
+        th Rol
+        th Estado
+        th Acciones
+    tbody
+      if usuarios.length > 0
+        each u in usuarios
+          tr
+            td #{u.idUsuario}
+            td 
+              if u.avatar
+                img.rounded-circle(
+                  src=u.avatar
+                  alt="Perfil"
+                  style="width:32px;height:32px;"
+                )
+              else
+                //- Inicial del nombre
+                - const inicial = u.nombre ? u.nombre[0].toUpperCase() : "?"
+                .rounded-circle.bg-primary.text-white.d-flex.align-items-center.justify-content-center(
+                  style="width:32px;height:32px;"
+                ) #{inicial}
+            td #{u.nombre} #{u.apellido}
+            td #{u.email}
+            td #{u.rol}
+            td 
+              if u.visible > 0
+                span.bg-success.text-white(style="padding: 4px 10px; border-radius: 5px;") Activo
+              else 
+                span.bg-secondary.text-white(style="padding: 4px 10px; border-radius: 5px;") Inactivo
+            td
+              if u.visible == 1
+                button.btn.btn-sm.btn-warning.mx-1(
+                  type="button"
+                  data-bs-toggle="modal"
+                  data-bs-target="#modalEditarUsuario"
+                  data-id=u.idUsuario
+                  data-nombre=u.nombre
+                  data-apellido=u.apellido
+                  data-email=u.email
+                  data-rol=u.rol
+                  data-avatar=u.avatar
+                ) Editar
+                if u.idUsuario!=user.id || u.idUsuario!=1
+                  button.btn.btn-sm.btn-danger.mx-1(
+                    type="button"
+                    data-bs-toggle="modal"
+                    data-bs-target="#modalBajaUsuario"
+                    data-id=u.idUsuario
+                    data-nombre=`${u.nombre} ${u.apellido}`
+                  ) Dar de baja
+              else
+                button.btnAltaUsuario.btn.btn-sm.btn-primary.mx-1(
+                  data-id=u.idUsuario
+                ) Dar de Alta
+      else
+        tr
+          td(colspan="7" class="text-center text-muted")
+            | No hay usuarios registrados
+  
+  if totalPages > 1
+    nav.mt-4
+      ul.pagination
+        each n in Array(totalPages).fill(0).map((_, i) => i + 1)
+          li.page-item(class=page===n ? "active" : "")
+            a.page-link(
+              href=`/usuarios?estado=${estado}&buscar=${buscar}&page=${n}`
+            ) #{n}
+  
+  //- MODAL CREAR
+  #modalCrearUsuario.modal.fade(tabindex="-1" aria-hidden="true")
+    .modal-dialog
+      .modal-content
+        .modal-header
+          h5.modal-title Nuevo Usuario
+          button.btn-close(type="button", data-bs-dismiss="modal")
+
+        .modal-body
+          form#formCrearUsuario
+            .mb-3.text-center
+              .previewAvatarCrear.rounded-circle.bg-primary.text-white.d-flex.align-items-center.justify-content-center.mx-auto(
+                style="width:100px;height:100px;font-size:40px;"
+              ) ?
+              button.btn.btn-danger.mt-2.hideImportant(type="button" id="btnCrearEliminarAvatar") Eliminar avatar
+            
+            .mb-3
+              label.form-label Avatar
+              input.form-control(type="file" name="avatar")
+
+            .mb-3
+              label.form-label Nombre
+              input.form-control(name="nombre" required)
+
+            .mb-3
+              label.form-label Apellido
+              input.form-control(name="apellido" required)
+
+            .mb-3
+              label.form-label Email
+              input.form-control(name="email" required)
+
+            .mb-3
+              label.form-label Rol
+              select.form-control(name="rol")
+                option(value="admin") Admin
+                option(value="recepcion") Recepcion
+                option(value="enfermeria") Enfermería
+                option(value="medico") Médico
+
+            .mb-3
+              label.form-label Contraseña
+              input.form-control(name="clave" required)
+
+        .modal-footer
+          button.btn.btn-secondary(type="button" data-bs-dismiss="modal") Cancelar
+          button.btn.btn-primary(type="submit" form="formCrearUsuario") Guardar
+
+  //- MODAL EDITAR
+  #modalEditarUsuario.modal.fade(tabindex="-1" aria-hidden="true")
+    .modal-dialog
+      .modal-content
+        .modal-header
+          h5.modal-title Editar Usuario
+          button.btn-close(type="button", data-bs-dismiss="modal")
+
+        .modal-body
+          form#formEditarUsuario
+            input(type="hidden" name="id")
+
+            .mb-3.text-center
+              img.previewAvatarEditar.rounded-circle.mx-auto(
+                style="width:100px;height:100px;object-fit:cover;display:none;"
+              )
+              .previewAvatarEditarFallback.rounded-circle.bg-primary.text-white.d-flex.align-items-center.justify-content-center.mx-auto(
+                style="width:100px;height:100px;font-size:40px;"
+              ) ?
+              button.btn.btn-danger.mt-2.hideImportant(type="button" id="btnEditarEliminarAvatar") Eliminar avatar
+
+            .mb-3
+              label.form-label Avatar
+              input.form-control(type="file" name="avatar")
+            
+            input(type="hidden" name="flagEliminarAvatar")
+
+            .mb-3
+              label.form-label Nombre
+              input.form-control(name="nombre" required)
+
+            .mb-3
+              label.form-label Apellido
+              input.form-control(name="apellido" required)
+
+            .mb-3
+              label.form-label Email
+              input.form-control(name="email" required)
+
+            .mb-3
+              label.form-label Rol
+              select.form-control(name="rol")
+                option(value="admin") Admin
+                option(value="recepcion") Recepcion
+                option(value="enfermeria") Enfermería
+                option(value="medico") Médico
+
+            .mb-3
+              label.form-label Contraseña
+              input.form-control(name="clave" placeholder="Para no cambiar la clave deje en blanco este campo.")
+
+        .modal-footer
+          button.btn.btn-secondary(type="button" data-bs-dismiss="modal") Cancelar
+          button.btn.btn-primary(type="submit" form="formEditarUsuario") Guardar Cambios
+
+  //- MODAL PARA CONFIRMAR LA BAJA LOGICA
+  #modalBajaUsuario.modal.fade(tabindex="-1" aria-hidden="true")
+    .modal-dialog
+      .modal-content
+        .modal-header
+          h5.modal-title Dar de baja usuario
+          button.btn-close(type="button", data-bs-dismiss="modal")
+
+        .modal-body
+          p Seguro que deseas dar de baja a:
+            strong 
+              span#nombreUsuario
+
+        .modal-footer
+          button.btn.btn-secondary(type="button" data-bs-dismiss="modal") Cancelar
+          button.btn.btn-danger#btnConfirmarBaja(type="button") Baja lógica
+
+  script.
+    document.addEventListener("DOMContentLoaded", () => {
+
+      // -------- CREAR USUARIO --------
+      const formCrear = document.getElementById("formCrearUsuario");
+      const modalCrear = document.getElementById("modalCrearUsuario");
+      const btnCrearEliminarAvatar = document.getElementById("btnCrearEliminarAvatar");
+
+      if (modalCrear) {
+        modalCrear.addEventListener("hidden.bs.modal", () => {
+          const inputAvatarCrear = formCrear.querySelector('input[name="avatar"]');
+          const previewAvatarCrear = document.querySelector(".previewAvatarCrear");
+          // Resetear formulario
+          formCrear.reset();
+
+          // Resetear vista previa
+          previewAvatarCrear.style.backgroundColor = "";
+          previewAvatarCrear.innerHTML = "?";
+          btnCrearEliminarAvatar.classList.add("hideImportant");
+          btnCrearEliminarAvatar.classList.remove("showImportant");
+
+          // Resetear input file
+          inputAvatarCrear.value = "";
+        });
+      }
+
+      if (formCrear) {
+        // Vista previa del avatar en crear
+        const inputAvatarCrear = formCrear.querySelector('input[name="avatar"]');
+        const previewAvatarCrear = document.querySelector(".previewAvatarCrear");
+
+        inputAvatarCrear.addEventListener("change", (e) => {
+          const file = e.target.files[0];
+          if (file) {
+            const reader = new FileReader();
+            reader.onload = (event) => {
+              previewAvatarCrear.style.backgroundColor = "transparent";
+              previewAvatarCrear.innerHTML = `<img src="${event.target.result}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
+            };
+            reader.readAsDataURL(file);
+            btnCrearEliminarAvatar.classList.add("showImportant");
+            btnCrearEliminarAvatar.classList.remove("hideImportant");
+          } else {
+            previewAvatarCrear.style.backgroundColor = "";
+            previewAvatarCrear.innerHTML = "?";
+            btnCrearEliminarAvatar.classList.add("hideImportant");
+            btnCrearEliminarAvatar.classList.remove("showImportant");
+          }
+        });
+
+        formCrear.addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const data = new FormData(formCrear);
+
+          const res = await fetch("/usuarios/crear", {
+            method: "POST",
+            body: data
+          });
+
+          const json = await res.json();
+          if (json.ok) location.reload();
+          else alert(json.error);
+        });
+      }
+
+      if (btnCrearEliminarAvatar) {
+        btnCrearEliminarAvatar.addEventListener("click", async () => {
+          const inputAvatarCrear = formCrear.querySelector('input[name="avatar"]');
+          const previewAvatarCrear = document.querySelector(".previewAvatarCrear");
+
+          previewAvatarCrear.style.backgroundColor = "";
+          previewAvatarCrear.innerHTML = "?";
+          btnCrearEliminarAvatar.classList.add("hideImportant");
+          btnCrearEliminarAvatar.classList.remove("showImportant");
+
+          inputAvatarCrear.value = "";
+        });
+      }
+
+      // -------- EDITAR USUARIO --------
+      const modalEditar = document.getElementById("modalEditarUsuario");
+      const formEditar = document.getElementById("formEditarUsuario");
+      const btnEditarEliminarAvatar = document.getElementById("btnEditarEliminarAvatar");
+
+      modalEditar.addEventListener("show.bs.modal", (event) => {
+        const button = event.relatedTarget;
+        const loggedId = #{JSON.stringify(user.id)};  // inyectar ID logueado desde Pug
+
+        formEditar.id.value = button.dataset.id;
+        formEditar.nombre.value = button.dataset.nombre;
+        formEditar.apellido.value = button.dataset.apellido;
+        formEditar.email.value = button.dataset.email;
+        formEditar.rol.value = button.dataset.rol;
+
+        formEditar.flagEliminarAvatar.value = "false";
+
+        const previewImg = formEditar.querySelector(".previewAvatarEditar");
+        const previewFallback = formEditar.querySelector(".previewAvatarEditarFallback");
+        const avatar = button.dataset.avatar;
+
+        if (avatar) {
+          // tiene avatar → mostrar imagen
+          previewImg.src = avatar;
+          previewImg.style.display = "block";
+          previewFallback.classList.add("hideImportant");
+          previewFallback.classList.remove("d-flex");
+          btnEditarEliminarAvatar.classList.add("showImportant");
+          btnEditarEliminarAvatar.classList.remove("hideImportant");
+        } else {
+          // no tiene avatar → mostrar fallback con inicial
+          const inicial = button.dataset.nombre ? button.dataset.nombre[0].toUpperCase() : "?";
+          previewFallback.textContent = inicial;
+          previewFallback.classList.remove("hideImportant");
+          previewFallback.classList.add("d-flex");
+          previewImg.style.display = "none";
+          btnEditarEliminarAvatar.classList.add("hideImportant");
+          btnEditarEliminarAvatar.classList.remove("showImportant");
+        }
+
+        // Si el usuario se edita a sí mismo, ocultar campo de rol
+        if (parseInt(button.dataset.id) === loggedId || parseInt(button.dataset.id) === 1) {
+            formEditar.rol.disabled = true;         // deshabilitar
+            formEditar.rol.classList.add("d-none"); // ocultar visualmente
+            formEditar.rol.closest(".mb-3").style.display = "none"; // ocultar la fila completa
+        } else {
+            formEditar.rol.disabled = false;
+            formEditar.rol.classList.remove("d-none"); // ocultar visualmente
+            formEditar.rol.closest(".mb-3").style.display = "block";
+        }
+
+        formEditar.querySelector('input[name="avatar"]').value = "";
+      });
+
+      // Vista previa del avatar en editar
+      const inputAvatarEditar = formEditar.querySelector('input[name="avatar"]');
+      const previewAvatarEditar = formEditar.querySelector(".previewAvatarEditar");
+      const previewAvatarEditarFallback = formEditar.querySelector(".previewAvatarEditarFallback");
+
+      inputAvatarEditar.addEventListener("change", (e) => {
+        const file = e.target.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = (event) => {
+            formEditar.flagEliminarAvatar.value = "false";
+            previewAvatarEditar.src = event.target.result;
+            previewAvatarEditar.style.display = "block";
+            previewAvatarEditarFallback.style.display = "none";
+            previewAvatarEditarFallback.classList.remove("d-flex");
+            btnEditarEliminarAvatar.classList.add("showImportant");
+            btnEditarEliminarAvatar.classList.remove("hideImportant");
+          };
+          reader.readAsDataURL(file);
+        } else {
+          previewAvatarEditar.style.display = "none";
+          previewAvatarEditarFallback.style.display = "flex";
+          previewAvatarEditarFallback.classList.add("d-flex");
+          btnEditarEliminarAvatar.classList.add("hideImportant");
+          btnEditarEliminarAvatar.classList.remove("showImportant");
+        }
+      });
+
+      if (btnEditarEliminarAvatar) {
+        const previewImg = formEditar.querySelector(".previewAvatarEditar");
+        const previewFallback = formEditar.querySelector(".previewAvatarEditarFallback");
+
+        btnEditarEliminarAvatar.addEventListener("click", async () => {
+          formEditar.flagEliminarAvatar.value = "true";
+
+          previewFallback.classList.remove("hideImportant");
+          previewFallback.classList.add("d-flex");
+          previewImg.style.display = "none";
+          btnEditarEliminarAvatar.classList.add("hideImportant");
+          btnEditarEliminarAvatar.classList.remove("showImportant");
+          
+          formEditar.querySelector('input[name="avatar"]').value = "";
+        });
+      }
+
+      formEditar.addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        const data = new FormData(formEditar);
+
+        const res = await fetch(`/usuarios/editar/${data.get("id")}`, {
+          method: "POST",
+          body: data
+        });
+
+        const json = await res.json();
+        if (json.ok) location.reload();
+        else alert(json.error);
+      });
+
+      // -------- BAJA USUARIO --------
+      const modalBaja = document.getElementById("modalBajaUsuario");
+      const btnBaja = document.getElementById("btnConfirmarBaja");
+
+      modalBaja.addEventListener("show.bs.modal", (event) => {
+        const button = event.relatedTarget; // botón que abrió el modal
+
+        const id = button.dataset.id;
+        const nombre = button.dataset.nombre;
+
+        // Guardamos el ID en el botón de confirmar para usarlo luego
+        btnBaja.dataset.id = id;
+
+        // Mostrar el nombre del usuario en el texto del modal
+        const nombreSpan = modalBaja.querySelector("#nombreUsuario");
+        if (nombreSpan) {
+          nombreSpan.textContent = nombre;
+        }
+      });
+
+      btnBaja.addEventListener("click", async () => {
+        
+        const id = btnBaja.dataset.id;
+
+        const res = await fetch(`/usuarios/baja/${id}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" }
+        });
+
+        const json = await res.json();
+
+        if (json.ok) {
+          location.reload(); // refrescar tabla
+        } else {
+          alert(json.error || "Error al dar de baja");
+        }
+      });
+
+      // -------- ALTA USUARIO --------
+      const botonesAlta = document.querySelectorAll(".btnAltaUsuario");
+
+      botonesAlta.forEach(btn => {
+        btn.addEventListener("click", async () => {
+
+          const id = btn.dataset.id;
+
+          const res = await fetch(`/usuarios/alta/${id}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" }
+          });
+
+          const json = await res.json();
+
+          if (json.ok) location.reload();
+          else alert(json.error || "Error al dar de alta");
+        });
+      });
+    });

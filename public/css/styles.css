@@ -81,3 +81,15 @@ table th {
 .error-page {
   margin-top: 100px;
 }
+
+.hideImportant {
+  display: none !important;
+}
+
+.showImportant {
+  display: inline-block !important;
+}
+
+.showFlexImportant {
+  display: flex !important;
+}

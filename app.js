@@ -5,6 +5,7 @@ import { sequelize } from './models/index.js';
 import session from 'express-session';
 import userRoutes from './routes/userRoutes.js';
 import pacienteRoutes from './routes/pacienteRoutes.js';
+import usuarioRoutes from './routes/usuarioRoutes.js';
 
 sequelize.authenticate()
     .then(() => console.log('Conexión a MySQL correcta'))
@@ -42,12 +43,13 @@ app.use((req, res, next) => {
 });
 
 // Rutas
-app.use('/usuarios', userRoutes);
+app.use('/users', userRoutes);
 app.use('/pacientes', pacienteRoutes);
+app.use('/usuarios', usuarioRoutes);
 
 // Página principal -> login
 app.get('/', (req, res) => {
-    res.redirect('/usuarios/login');
+    res.redirect('/users/login');
 });
 
 // Middleware para rutas inexistentes
