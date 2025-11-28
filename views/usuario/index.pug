@@ -240,6 +240,14 @@ block content
   script.
     document.addEventListener("DOMContentLoaded", () => {
 
+      // -------- QUITAR FOCUS DE MODALES SI SE OCULTAN --------
+      document.querySelectorAll('.modal').forEach(modal => {
+        modal.addEventListener("hidden.bs.modal", () => {
+          document.activeElement.blur();
+          document.body.focus();
+        });
+      });
+
       // -------- CREAR USUARIO --------
       const formCrear = document.getElementById("formCrearUsuario");
       const modalCrear = document.getElementById("modalCrearUsuario");

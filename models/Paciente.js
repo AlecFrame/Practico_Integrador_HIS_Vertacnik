@@ -7,12 +7,12 @@ const Paciente = sequelize.define('Paciente', {
         primaryKey: true,
         autoIncrement: true
     },
-    nombre: DataTypes.STRING,
-    apellido: DataTypes.STRING,
-    dni: { type: DataTypes.STRING, unique: true },
+    nombre: DataTypes.STRING(50),
+    apellido: DataTypes.STRING(50),
+    dni: { type: DataTypes.STRING(10), unique: true },
     fechaNacimiento: DataTypes.DATE,
     sexo: DataTypes.ENUM('M', 'F'),
-    telefono: DataTypes.STRING,
+    telefono: DataTypes.STRING(15),
     direccion: DataTypes.STRING,
     visible: DataTypes.TINYINT
 });

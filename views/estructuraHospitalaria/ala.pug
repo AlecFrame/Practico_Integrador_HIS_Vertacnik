@@ -1,105 +1,96 @@
 extends ../layout
 
 block content
-  h1(style="justify-self: center;") Gestión de Pacientes
+  h1(style="justify-self: center;") Gestión de Alas
 
   .d-flex.justify-content-between.align-items-center
     .d-flex.justify-content-between.align-items-center.mt-3
       .btn-group
         a.btn.btn-outline-primary(
-          href="/pacientes?estado=todos"
+          href="/alas?estado=todos"
           class=estado==="todos" ? "active" : ""
         ) Todos
 
         a.btn.btn-outline-success(
-          href="/pacientes?estado=activos"
+          href="/alas?estado=activos"
           class=estado==="activos" ? "active" : ""
         ) Activos
 
         a.btn.btn-outline-secondary(
-          href="/pacientes?estado=inactivos"
+          href="/alas?estado=inactivos"
           class=estado==="inactivos" ? "active" : ""
         ) Inactivos
 
     //- BUSCADOR
-    form(method="GET" action="/pacientes" class="d-flex gap-2 mt-3")
-      input.form-control(
-        type="text"
-        name="buscar"
-        style="width: 300px;"
-        placeholder="Buscar por nombre, apellido o DNI..."
-        value=buscar
-      )
+    form(method="GET" action="/alas" class="d-flex gap-2 mt-3")
+      select.form-control(name="unidadFiltro" style="width: 300px;")
+        option(
+          value=0
+          selected=unidadFiltro == 0
+        ) De todas las Unidades
 
-      //- Mantener el filtro actual
+        each u in unidades
+          option(
+            value=u.idUnidad
+            selected=unidadFiltro == u.idUnidad
+          ) #{u.nombre}
+
       input(type="hidden" name="estado" value=estado)
 
       button.btn.btn-outline-primary(type="submit") Buscar
 
+
     button.btn.btn-success.mx-3.mt-3(
       type="button"
       data-bs-toggle="modal"
-      data-bs-target="#modalCrearPaciente"
-    ) + Nuevo Paciente
+      data-bs-target="#modalCrearAla"
+    ) + Nueva Ala
 
   table.table.table-striped.mt-3
     thead
       tr
         th ID
         th Nombre
-        th DNI
-        th Fecha de Nacimiento
-        th Sexo
-        th Teléfono
-        th Dirección
+        th Unidad
         th Estado
         th Acciones
     tbody
-      if pacientes.length > 0
-        each p in pacientes
+      if alas.length > 0
+        each a in alas
           tr
-            td #{p.idPaciente}
-            td #{p.nombre} #{p.apellido}
-            td #{p.dni}
-            td #{p.fechaNacimiento.toLocaleDateString("es-AR")}
-            td #{p.sexo}
-            td #{p.telefono}
-            td #{p.direccion}
+            td #{a.idAla}
+            td #{a.nombre}
+            td #{a.Unidad.nombre}
             td 
-              if p.visible > 0
+              if a.visible > 0
                 span.bg-success.text-white(style="padding: 4px 10px; border-radius: 5px;") Activo
               else 
                 span.bg-secondary.text-white(style="padding: 4px 10px; border-radius: 5px;") Inactivo
             td
-              if p.visible == 1
+              if a.visible == 1
                 button.btn.btn-sm.btn-warning.mx-1(
                   type="button"
                   data-bs-toggle="modal"
-                  data-bs-target="#modalEditarPaciente"
-                  data-id=p.idPaciente
-                  data-nombre=p.nombre
-                  data-apellido=p.apellido
-                  data-dni=p.dni
-                  data-fecha=p.fechaNacimiento
-                  data-sexo=p.sexo
-                  data-telefono=p.telefono
-                  data-direccion=p.direccion
+                  data-bs-target="#modalEditarAla"
+                  data-id=a.idAla
+                  data-nombre=a.nombre
+                  data-unidad-id=a.Unidad.idUnidad
                 ) Editar
                 button.btn.btn-sm.btn-danger.mx-1(
                   type="button"
                   data-bs-toggle="modal"
-                  data-bs-target="#modalBajaPaciente"
-                  data-id=p.idPaciente
-                  data-nombre=`${p.nombre} ${p.apellido}`
+                  data-bs-target="#modalBajaAla"
+                  data-id=a.idAla
+                  data-nombre=`${a.nombre}`
                 ) Dar de baja
               else
-                button.btnAltaPaciente.btn.btn-sm.btn-primary.mx-1(
-                  data-id=p.idPaciente
+                button.btnAltaAla.btn.btn-sm.btn-primary.mx-1(
+                  data-id=a.idAla
                 ) Dar de Alta
       else
         tr
           td(colspan="9" class="text-center text-muted")
-            | No hay pacientes registrados
+            | No hay alas registradas
   
   if totalPages > 1
     nav.mt-4
@@ -107,111 +98,71 @@ block content
         each n in Array(totalPages).fill(0).map((_, i) => i + 1)
           li.page-item(class=page===n ? "active" : "")
             a.page-link(
-              href=`/pacientes?estado=${estado}&buscar=${buscar}&page=${n}`
+              href=`/alas?estado=${estado}&buscar=${buscar}&page=${n}`
             ) #{n}
   
-  //- MODAL CREAR PACIENTE
-  #modalCrearPaciente.modal.fade(tabindex="-1" aria-hidden="true")
+  //- MODAL CREAR ALA
+  #modalCrearAla.modal.fade(tabindex="-1" aria-hidden="true")
     .modal-dialog
       .modal-content
         .modal-header
-          h5.modal-title Nuevo Paciente
+          h5.modal-title Nueva Ala
           button.btn-close(type="button", data-bs-dismiss="modal")
 
         .modal-body
-          form#formCrearPaciente
+          form#formCrearAla
+            .mb-3
+              label.form-label Unidad
+              select.form-control(name="unidadId")
+                each u in unidades
+                  option(value=u.idUnidad) #{u.nombre}
+
             .mb-3
               label.form-label Nombre
               input.form-control(name="nombre" required)
 
-            .mb-3
-              label.form-label Apellido
-              input.form-control(name="apellido" required)
-
-            .mb-3
-              label.form-label DNI
-              input.form-control(name="dni" required)
-
-            .mb-3
-              label.form-label Fecha de Nacimiento
-              input.form-control(type="date" name="fechaNacimiento" required)
-
-            .mb-3
-              label.form-label Sexo
-              select.form-control(name="sexo")
-                option(value="M") Masculino
-                option(value="F") Femenino
-
-            .mb-3
-              label.form-label Teléfono
-              input.form-control(name="telefono")
-
-            .mb-3
-              label.form-label Dirección
-              input.form-control(name="direccion")
-
         .modal-footer
           button.btn.btn-secondary(type="button" data-bs-dismiss="modal") Cancelar
-          button.btn.btn-primary(type="submit" form="formCrearPaciente") Guardar
+          button.btn.btn-primary(type="submit" form="formCrearAla") Guardar
 
-  //- MODAL EDITAR PACIENTE
-  #modalEditarPaciente.modal.fade(tabindex="-1" aria-hidden="true")
+  //- MODAL EDITAR ALA
+  #modalEditarAla.modal.fade(tabindex="-1" aria-hidden="true")
     .modal-dialog
       .modal-content
         .modal-header
-          h5.modal-title Editar Paciente
+          h5.modal-title Editar Ala
           button.btn-close(type="button", data-bs-dismiss="modal")
 
         .modal-body
-          form#formEditarPaciente
+          form#formEditarAla
             input(type="hidden" name="id")
 
             .mb-3
+              label.form-label Unidad
+              select.form-control(name="unidadId")
+                each u in unidades
+                  option( value=u.idUnidad ) #{u.nombre}
+
+            .mb-3
               label.form-label Nombre
               input.form-control(name="nombre" required)
 
-            .mb-3
-              label.form-label Apellido
-              input.form-control(name="apellido" required)
-
-            .mb-3
-              label.form-label DNI
-              input.form-control(name="dni" required)
-
-            .mb-3
-              label.form-label Fecha de Nacimiento
-              input.form-control(type="date" name="fechaNacimiento" required)
-
-            .mb-3
-              label.form-label Sexo
-              select.form-control(name="sexo")
-                option(value="M") Masculino
-                option(value="F") Femenino
-
-            .mb-3
-              label.form-label Teléfono
-              input.form-control(name="telefono")
-
-            .mb-3
-              label.form-label Dirección
-              input.form-control(name="direccion")
-
         .modal-footer
           button.btn.btn-secondary(type="button" data-bs-dismiss="modal") Cancelar
-          button.btn.btn-primary(type="submit" form="formEditarPaciente") Guardar Cambios
+          button.btn.btn-primary(type="submit" form="formEditarAla") Guardar Cambios
 
   //- MODAL PARA CONFIRMAR LA BAJA LOGICA
-  #modalBajaPaciente.modal.fade(tabindex="-1" aria-hidden="true")
+  #modalBajaAla.modal.fade(tabindex="-1" aria-hidden="true")
     .modal-dialog
       .modal-content
         .modal-header
-          h5.modal-title Dar de baja paciente
+          h5.modal-title Dar de baja ala
           button.btn-close(type="button", data-bs-dismiss="modal")
 
         .modal-body
           p Seguro que deseas dar de baja a:
             strong 
-              span#nombrePaciente
+              span#nombreAla
 
         .modal-footer
           button.btn.btn-secondary(type="button" data-bs-dismiss="modal") Cancelar
@@ -219,7 +170,7 @@ block content
 
   script.
     document.addEventListener("DOMContentLoaded", () => {
-
+      
       // -------- QUITAR FOCUS DE MODALES SI SE OCULTAN --------
       document.querySelectorAll('.modal').forEach(modal => {
         modal.addEventListener("hidden.bs.modal", () => {
@@ -228,15 +179,15 @@ block content
         });
       });
 
-      // -------- CREAR PACIENTE --------
-      const formCrear = document.getElementById("formCrearPaciente");
+      // -------- CREAR ALA --------
+      const formCrear = document.getElementById("formCrearAla");
 
       if (formCrear) {
         formCrear.addEventListener("submit", async (e) => {
           e.preventDefault();
           const data = Object.fromEntries(new FormData(formCrear));
 
-          const res = await fetch("/pacientes/crear", {
+          const res = await fetch("/alas/crear", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(data)
@@ -248,24 +199,18 @@ block content
         });
       }
 
-      // -------- EDITAR PACIENTE --------
-      const modalEditar = document.getElementById("modalEditarPaciente");
-      const formEditar = document.getElementById("formEditarPaciente");
+      // -------- EDITAR ALA --------
+      const modalEditar = document.getElementById("modalEditarAla");
+      const formEditar = document.getElementById("formEditarAla");
 
       modalEditar.addEventListener("show.bs.modal", (event) => {
         const button = event.relatedTarget;
 
         formEditar.id.value = button.dataset.id;
         formEditar.nombre.value = button.dataset.nombre;
-        formEditar.apellido.value = button.dataset.apellido;
-        formEditar.dni.value = button.dataset.dni;
 
-        if (button.dataset.fecha)
-          formEditar.fechaNacimiento.value = button.dataset.fecha.substring(0, 10);
-
-        formEditar.sexo.value = button.dataset.sexo;
-        formEditar.telefono.value = button.dataset.telefono;
-        formEditar.direccion.value = button.dataset.direccion;
+        const unidadId = button.dataset.unidadId;
+        formEditar.unidadId.value = unidadId;
       });
 
       formEditar.addEventListener("submit", async (e) => {
@@ -273,7 +218,7 @@ block content
 
         const data = Object.fromEntries(new FormData(formEditar));
 
-        const res = await fetch(`/pacientes/editar/${data.id}`, {
+        const res = await fetch(`/alas/editar/${data.id}`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(data)
@@ -284,8 +229,8 @@ block content
         else alert(json.error);
       });
 
-      // -------- BAJA PACIENTE --------
-      const modalBaja = document.getElementById("modalBajaPaciente");
+      // -------- BAJA ALA --------
+      const modalBaja = document.getElementById("modalBajaAla");
       const btnBaja = document.getElementById("btnConfirmarBaja");
 
       modalBaja.addEventListener("show.bs.modal", (event) => {
@@ -297,8 +242,8 @@ block content
         // Guardamos el ID en el botón de confirmar para usarlo luego
         btnBaja.dataset.id = id;
 
-        // Mostrar el nombre del paciente en el texto del modal
-        const nombreSpan = modalBaja.querySelector("#nombrePaciente");
+        // Mostrar el nombre del ala en el texto del modal
+        const nombreSpan = modalBaja.querySelector("#nombreAla");
         if (nombreSpan) {
           nombreSpan.textContent = nombre;
         }
@@ -308,7 +253,7 @@ block content
         
         const id = btnBaja.dataset.id;
 
-        const res = await fetch(`/pacientes/baja/${id}`, {
+        const res = await fetch(`/alas/baja/${id}`, {
           method: "POST",
           headers: { "Content-Type": "application/json" }
         });
@@ -322,15 +267,15 @@ block content
         }
       });
 
-      // -------- ALTA PACIENTE --------
-      const botonesAlta = document.querySelectorAll(".btnAltaPaciente");
+      // -------- ALTA ALA --------
+      const botonesAlta = document.querySelectorAll(".btnAltaAla");
 
       botonesAlta.forEach(btn => {
         btn.addEventListener("click", async () => {
 
           const id = btn.dataset.id;
 
-          const res = await fetch(`/pacientes/alta/${id}`, {
+          const res = await fetch(`/alas/alta/${id}`, {
             method: "POST",
             headers: { "Content-Type": "application/json" }
           });

@@ -22,7 +22,6 @@ html
       // SIDEBAR IZQUIERDA
       if user
         aside#sidebar.bg-white.border-end.p-3(style="width:250px; min-height:100vh;")
-          h5.fw-bold.mb-3 Menú de navegación
           ul.nav.flex-column
             li.nav-item.mb-2
               a.nav-link(href="/users/dashboard") Inicio
@@ -41,7 +40,19 @@ html
 
             if user.rol === "admin"
               li.nav-item.mb-2
-                a.nav-link(href="/usuarios") Gestión Usuarios
+                a.nav-link(href="/usuarios") Usuarios
+
+              li.nav-item.mb-2
+                a.nav-link(href="/unidades") Unidades
+
+              li.nav-item.mb-2
+                a.nav-link(href="/alas") Alas
+
+              li.nav-item.mb-2
+                a.nav-link(href="/habitaciones") Habitaciones
+
+              li.nav-item.mb-2
+                a.nav-link(href="/camas") Camas
 
             li.nav-item.mt-4
               form(action="/users/logout" method="POST")

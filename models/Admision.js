@@ -11,7 +11,8 @@ const Admision = sequelize.define('Admision', {
     tipoIngreso: DataTypes.ENUM('cita', 'derivacion', 'emergencia'),
     estado: DataTypes.ENUM('activa', 'cancelada', 'finalizada'),
     motivoInternacion: DataTypes.TEXT,
-    visible: DataTypes.TINYINT
+    visible: DataTypes.TINYINT,
+    derivadoPor: DataTypes.STRING
 });
 
 export default Admision;

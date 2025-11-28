@@ -3,15 +3,20 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { sequelize } from './models/index.js';
 import session from 'express-session';
+
 import userRoutes from './routes/userRoutes.js';
 import pacienteRoutes from './routes/pacienteRoutes.js';
 import usuarioRoutes from './routes/usuarioRoutes.js';
+import unidadRoutes from './routes/unidadRoutes.js';
+import alaRoutes from './routes/alaRoutes.js';
+import habitacionRoutes from './routes/habitacionRoutes.js';
+import camaRoutes from './routes/camaRoutes.js';
 
 sequelize.authenticate()
     .then(() => console.log('Conexión a MySQL correcta'))
     .catch(err => console.error('Error conectando a MySQL:', err));
 
-sequelize.sync({ alter: true })
+sequelize.sync()
     .then(() => console.log("Modelos sincronizados"))
     .catch(err => console.error("Error sincronizando modelos:", err));
 
@@ -46,6 +51,10 @@ app.use((req, res, next) => {
 app.use('/users', userRoutes);
 app.use('/pacientes', pacienteRoutes);
 app.use('/usuarios', usuarioRoutes);
+app.use('/unidades', unidadRoutes);
+app.use('/alas', alaRoutes);
+app.use('/habitaciones', habitacionRoutes);
+app.use('/camas', camaRoutes);
 
 // Página principal -> login
 app.get('/', (req, res) => {

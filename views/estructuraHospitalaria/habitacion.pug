@@ -1,0 +1,314 @@
+extends ../layout
+
+block content
+  h1(style="justify-self: center;") Gestión de Habitaciones
+
+  .d-flex.justify-content-between.align-items-center
+    .d-flex.justify-content-between.align-items-center.mt-3
+      .btn-group
+        a.btn.btn-outline-primary(
+          href="/habitaciones?estado=todos"
+          class=estado==="todos" ? "active" : ""
+        ) Todos
+
+        a.btn.btn-outline-success(
+          href="/habitaciones?estado=activos"
+          class=estado==="activos" ? "active" : ""
+        ) Activos
+
+        a.btn.btn-outline-secondary(
+          href="/habitaciones?estado=inactivos"
+          class=estado==="inactivos" ? "active" : ""
+        ) Inactivos
+
+    //- BUSCADOR
+    form(method="GET" action="/habitaciones" class="d-flex gap-2 mt-3")
+      select.form-control(name="alaFiltro" style="width: 250px;")
+        option(
+          value=0
+          selected=alaFiltro == 0
+        ) De todas las Alas
+
+        each a in alas
+          option(
+            value=a.idAla
+            selected=alaFiltro == a.idAla
+          ) #{a.nombre}
+
+      select.form-control(name="tipoFiltro" style="width: 250px;")
+        option(value='' selected=tipoFiltro == 0) De todos los tipos
+        option(value='individual' selected=tipoFiltro == 'individual') Individual
+        option(value='doble' selected=tipoFiltro == 'doble') Doble
+
+      input(type="hidden" name="estado" value=estado)
+
+      button.btn.btn-outline-primary(type="submit") Buscar
+
+
+    button.btn.btn-success.mx-3.mt-3(
+      type="button"
+      data-bs-toggle="modal"
+      data-bs-target="#modalCrearHabitacion"
+    ) + Nueva Habitacion
+
+  table.table.table-striped.mt-3
+    thead
+      tr
+        th ID
+        th Número
+        th Ala
+        th Unidad
+        th Tipo
+        th Estado
+        th Acciones
+    tbody
+      if habitaciones.length > 0
+        each h in habitaciones
+          tr
+            td #{h.idHabitacion}
+            td #{h.numero}
+            td #{h.Ala.nombre}
+            td #{h.Ala.Unidad.nombre}
+            td #{h.tipo}
+            td 
+              if h.visible > 0
+                span.bg-success.text-white(style="padding: 4px 10px; border-radius: 5px;") Activo
+              else 
+                span.bg-secondary.text-white(style="padding: 4px 10px; border-radius: 5px;") Inactivo
+            td
+              if h.visible == 1
+                button.btn.btn-sm.btn-warning.mx-1(
+                  type="button"
+                  data-bs-toggle="modal"
+                  data-bs-target="#modalEditarHabitacion"
+                  data-id=h.idHabitacion
+                  data-numero=h.numero
+                  data-tipo=h.tipo
+                  data-ala-id=h.Ala.idAla
+                ) Editar
+                button.btn.btn-sm.btn-danger.mx-1(
+                  type="button"
+                  data-bs-toggle="modal"
+                  data-bs-target="#modalBajaHabitacion"
+                  data-id=h.idHabitacion
+                  data-numero=`${h.numero}`
+                ) Dar de baja
+              else
+                button.btnAltaHabitacion.btn.btn-sm.btn-primary.mx-1(
+                  data-id=h.idHabitacion
+                ) Dar de Alta
+      else
+        tr
+          td(colspan="9" class="text-center text-muted")
+            | No hay habitaciones registradas
+  
+  if totalPages > 1
+    nav.mt-4
+      ul.pagination
+        each n in Array(totalPages).fill(0).map((_, i) => i + 1)
+          li.page-item(class=page===n ? "active" : "")
+            a.page-link(
+              href=`/habitaciones?estado=${estado}&buscar=${buscar}&page=${n}`
+            ) #{n}
+  
+  //- MODAL CREAR HABITACION
+  #modalCrearHabitacion.modal.fade(tabindex="-1" aria-hidden="true")
+    .modal-dialog
+      .modal-content
+        .modal-header
+          h5.modal-title Nueva Habitacion
+          button.btn-close(type="button", data-bs-dismiss="modal")
+
+        .modal-body
+          form#formCrearHabitacion
+            .mb-3
+              label.form-label Ala
+              select.form-control(name="alaId")
+                each a in alas
+                  option(value=a.idAla) #{a.nombre}
+
+            .mb-3
+              label.form-label Número
+              input.form-control(name="numero" required)
+
+            .mb-3
+              label.form-label Tipo
+              select.form-control(name="tipo")
+                option(value='individual') Individual
+                option(value='doble') Doble
+
+        .modal-footer
+          button.btn.btn-secondary(type="button" data-bs-dismiss="modal") Cancelar
+          button.btn.btn-primary(type="submit" form="formCrearHabitacion") Guardar
+
+  //- MODAL EDITAR HABITACION
+  #modalEditarHabitacion.modal.fade(tabindex="-1" aria-hidden="true")
+    .modal-dialog
+      .modal-content
+        .modal-header
+          h5.modal-title Editar Habitacion
+          button.btn-close(type="button", data-bs-dismiss="modal")
+
+        .modal-body
+          form#formEditarHabitacion
+            input(type="hidden" name="id")
+
+            .mb-3
+              label.form-label Ala
+              select.form-control(name="alaId")
+                each a in alas
+                  option(value=a.idAla) #{a.nombre}
+
+            .mb-3
+              label.form-label Número
+              input.form-control(name="numero" required)
+
+            .mb-3
+              label.form-label Tipo
+              select.form-control(name="tipo")
+                option(value='individual') Individual
+                option(value='doble') Doble
+
+        .modal-footer
+          button.btn.btn-secondary(type="button" data-bs-dismiss="modal") Cancelar
+          button.btn.btn-primary(type="submit" form="formEditarHabitacion") Guardar Cambios
+
+  //- MODAL PARA CONFIRMAR LA BAJA LOGICA
+  #modalBajaHabitacion.modal.fade(tabindex="-1" aria-hidden="true")
+    .modal-dialog
+      .modal-content
+        .modal-header
+          h5.modal-title Dar de baja ala
+          button.btn-close(type="button", data-bs-dismiss="modal")
+
+        .modal-body
+          p Seguro que deseas dar de baja a:
+            strong 
+              span#nombreHabitacion
+
+        .modal-footer
+          button.btn.btn-secondary(type="button" data-bs-dismiss="modal") Cancelar
+          button.btn.btn-danger#btnConfirmarBaja(type="button") Baja lógica
+
+  script.
+    document.addEventListener("DOMContentLoaded", () => {
+      
+      // -------- QUITAR FOCUS DE MODALES SI SE OCULTAN --------
+      document.querySelectorAll('.modal').forEach(modal => {
+        modal.addEventListener("hidden.bs.modal", () => {
+          document.activeElement.blur();
+          document.body.focus();
+        });
+      });
+
+      // -------- CREAR HABITACION --------
+      const formCrear = document.getElementById("formCrearHabitacion");
+
+      if (formCrear) {
+        formCrear.addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const data = Object.fromEntries(new FormData(formCrear));
+
+          const res = await fetch("/habitaciones/crear", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data)
+          });
+
+          const json = await res.json();
+          if (json.ok) location.reload();
+          else alert(json.error);
+        });
+      }
+
+      // -------- EDITAR HABITACION --------
+      const modalEditar = document.getElementById("modalEditarHabitacion");
+      const formEditar = document.getElementById("formEditarHabitacion");
+
+      modalEditar.addEventListener("show.bs.modal", (event) => {
+        const button = event.relatedTarget;
+
+        formEditar.id.value = button.dataset.id;
+        formEditar.numero.value = button.dataset.numero;
+
+        const alaId = button.dataset.alaId;
+        formEditar.alaId.value = alaId;
+
+        const tipo = button.dataset.tipo;
+        formEditar.tipo.value = tipo;
+      });
+
+      formEditar.addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        const data = Object.fromEntries(new FormData(formEditar));
+
+        const res = await fetch(`/habitaciones/editar/${data.id}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(data)
+        });
+
+        const json = await res.json();
+        if (json.ok) location.reload();
+        else alert(json.error);
+      });
+
+      // -------- BAJA HABITACION --------
+      const modalBaja = document.getElementById("modalBajaHabitacion");
+      const btnBaja = document.getElementById("btnConfirmarBaja");
+
+      modalBaja.addEventListener("show.bs.modal", (event) => {
+        const button = event.relatedTarget; // botón que abrió el modal
+
+        const id = button.dataset.id;
+        const numero = button.dataset.numero;
+
+        // Guardamos el ID en el botón de confirmar para usarlo luego
+        btnBaja.dataset.id = id;
+
+        // Mostrar el nombre del ala en el texto del modal
+        const nombreSpan = modalBaja.querySelector("#nombreHabitacion");
+        if (nombreSpan) {
+          nombreSpan.textContent = numero;
+        }
+      });
+
+      btnBaja.addEventListener("click", async () => {
+        
+        const id = btnBaja.dataset.id;
+
+        const res = await fetch(`/habitaciones/baja/${id}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" }
+        });
+
+        const json = await res.json();
+
+        if (json.ok) {
+          location.reload(); // refrescar tabla
+        } else {
+          alert(json.error || "Error al dar de baja");
+        }
+      });
+
+      // -------- ALTA HABITACION --------
+      const botonesAlta = document.querySelectorAll(".btnAltaHabitacion");
+
+      botonesAlta.forEach(btn => {
+        btn.addEventListener("click", async () => {
+
+          const id = btn.dataset.id;
+
+          const res = await fetch(`/habitaciones/alta/${id}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" }
+          });
+
+          const json = await res.json();
+
+          if (json.ok) location.reload();
+          else alert(json.error || "Error al dar de alta");
+        });
+      });
+    });
