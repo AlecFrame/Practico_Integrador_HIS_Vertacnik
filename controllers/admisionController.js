@@ -1,4 +1,4 @@
-import { Admision, Paciente, Unidad, Ala, Habitacion, Cama } from '../models/index.js';
+import { Admision, Usuario, Paciente, Unidad, Ala, Habitacion, Cama, EvaluacionEnfermeria, EvaluacionMedica } from '../models/index.js';
 import { Op } from "sequelize";
 
 export const listar = async (req, res) => {
@@ -259,4 +259,99 @@ export const filtrarPacientes = async (req, res) => {
     console.error("error: ", error);
     return res.json({ ok: false, error: error });
   }
+};
+
+export const detalles = async (req, res) => {
+  const estadoEnf = req.query.estadoEnf || "activos";
+  const estadoMed = req.query.estadoMed || "activos";
+  const pageEnf = parseInt(req.query.pageEnf) || 1;
+  const pageSizeEnf = 10;
+  const pageMed = parseInt(req.query.pageMed) || 1;
+  const pageSizeMed = 10;
+
+  const admision = await Admision.findByPk(req.params.id, {
+    include: [
+      {
+        model: Paciente,
+        as: 'Paciente'
+      },
+      {
+        model: Cama,
+        as: 'Cama',
+        include: [{
+          model: Habitacion,
+          as: 'Habitacion',
+          include: [{
+            model: Ala,
+            as: 'Ala',
+            include: [{ model: Unidad, as: 'Unidad' }]
+          }]
+        }]
+      },
+      {
+        model: Usuario,
+        as: 'admitidoPor'
+      }
+    ]
+  });
+
+  let where = {};
+  where.admisionId = req.params.id;
+
+  if (estadoEnf === "activos") where.visible = 1;
+  if (estadoEnf === "inactivos") where.visible = 0;
+
+  const { count: countEnf, rows: rowsEnf } = await EvaluacionEnfermeria.findAndCountAll({
+    where,
+    limit: pageSizeEnf,
+    offset: (pageEnf - 1) * pageSizeEnf,
+    include: [
+      {
+        model: Usuario,
+        as: 'Usuario'
+      }
+    ]
+  });
+
+  const totalPagesEnf = Math.ceil(countEnf / pageSizeEnf);
+
+  rowsEnf.forEach(e => {
+    if (typeof e.signosVitales === "string") {
+      e.signosVitales = JSON.parse(e.signosVitales);
+    }
+  });
+
+  where = {};
+  where.admisionId = req.params.id;
+
+  if (estadoMed === "activos") where.visible = 1;
+  if (estadoMed === "inactivos") where.visible = 0;
+
+  const { count: countMed, rows: rowsMed } = await EvaluacionMedica.findAndCountAll({
+    where,
+    limit: pageSizeMed,
+    offset: (pageMed - 1) * pageSizeMed,
+    include: [
+      {
+        model: Usuario,
+        as: 'Usuario'
+      }
+    ]
+  });
+
+  const totalPagesMed = Math.ceil(countMed / pageSizeMed);
+
+  res.render("admision/detalle", {
+    admision,
+    evaluacionesEnf: rowsEnf || [],
+    evaluacionesMed: rowsMed || [],
+    estadoEnf,
+    estadoMed,
+    pageEnf,
+    pageSizeEnf,
+    pageMed,
+    pageSizeMed,
+    totalPagesEnf,
+    totalPagesMed
+  });
 };

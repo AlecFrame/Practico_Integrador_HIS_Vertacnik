@@ -1,0 +1,730 @@
+extends ../layout
+
+block content
+  h1.text-center.my-3 Detalle de Admisión ##{admision.idAdmision}
+
+  // ============================
+  // SECCIÓN: Datos del Paciente
+  // ============================
+  .card.mb-4
+    .card-header.bg-primary.text-white
+      h5.mb-0 Datos del Paciente
+
+    .card-body
+      .row
+        .col-md-4
+          p.mb-1
+            strong Nombre: 
+            | #{admision.Paciente.nombre} #{admision.Paciente.apellido}
+        .col-md-4
+          p.mb-1
+            strong DNI: 
+            | #{admision.Paciente.dni}
+        .col-md-4
+          p.mb-1
+            strong Sexo: 
+            | #{admision.Paciente.sexo}
+
+      .row.mt-2
+        .col-md-4
+          p.mb-1
+            strong Fecha Nac: 
+            | #{admision.Paciente.fechaNacimiento.toLocaleDateString("es-AR")}
+        .col-md-4
+          p.mb-1
+            strong Edad: 
+            | #{admision.Paciente.edad} años
+        .col-md-4
+          p.mb-1
+            strong Cobertura: 
+            | #{admision.Paciente.obraSocial || 'No especificada'}
+
+  // ============================
+  // SECCIÓN: Datos de la Admisión
+  // ============================
+  .card.mb-4
+    .card-header.bg-secondary.text-white
+      h5.mb-0 Información de la Admisión ##{admision.idAdmision}
+
+    .card-body
+      .row
+        .col-md-4
+          p.mb-1
+            strong Registrado por: 
+            | #{admision.admitidoPor.nombre} #{admision.admitidoPor.apellido}
+        .col-md-4
+          p.mb-1
+            strong Fecha ingreso: 
+            | #{admision.fechaIngreso.toLocaleDateString("es-AR")}
+      
+      .row.mt-3
+        .col-md-4
+          p.mb-1
+            strong Tipo de ingreso: 
+            | #{admision.tipoIngreso}
+        if admision.tipoIngreso === 'derivacion'
+          .col-md-4
+            p.mb-1
+              strong Derivado por: 
+              | #{admision.derivadoPor}
+      
+      .row.mt-3
+        .col-md-4
+          p.mb-1
+            strong Estado: 
+              span.badge.ms-2(
+                class=admision.estado === 'activa' ? 'bg-success' 
+                : admision.estado === 'cancelada' ? 'bg-secondary' 
+                : 'bg-primary'
+              ) #{admision.estado}
+
+      .row.mt-3
+        .col-md-4
+          p.mb-1
+            strong Motivo internación: 
+            | #{admision.motivoInternacion}
+
+      hr
+
+      // Datos de infraestructura
+      .row
+        .col-md-3
+          p.mb-1
+            strong Cama: 
+            | ##{admision.Cama.numero}
+        .col-md-3
+          p.mb-1
+            strong Habitación: 
+            | #{admision.Cama.Habitacion.numero} (#{admision.Cama.Habitacion.tipo})
+        .col-md-3
+          p.mb-1
+            strong Ala: 
+            | #{admision.Cama.Habitacion.Ala.nombre}
+        .col-md-3
+          p.mb-1
+            strong Unidad: 
+            | #{admision.Cama.Habitacion.Ala.Unidad.nombre}
+
+  // ============================
+  // SECCIÓN: Evaluaciones Enfermería
+  // ============================
+  .card.mb-4
+    .card-header.d-flex.justify-content-between.align-items-center
+      h5.mb-0 Evaluaciones de Enfermería
+
+    .card-body
+      .d-flex.justify-content-between.align-items-center
+        .btn-group
+          a.btn.btn-outline-primary(
+            href=`/admisiones/detalle/${admision.idAdmision}?estadoEnf=todos&estadoMed=${estadoMed}&pageMed:${pageMed}`
+            class=estadoEnf==="todos" ? "active" : ""
+          ) Todos
+
+          a.btn.btn-outline-success(
+            href=`/admisiones/detalle/${admision.idAdmision}?estadoEnf=activos&estadoMed=${estadoMed}&pageMed:${pageMed}`
+            class=estadoEnf==="activos" ? "active" : ""
+          ) Activos
+
+          a.btn.btn-outline-secondary(
+            href=`/admisiones/detalle/${admision.idAdmision}?estadoEnf=inactivos&estadoMed=${estadoMed}&pageMed:${pageMed}`
+            class=estadoEnf==="inactivos" ? "active" : ""
+          ) Inactivos
+
+        button#btnCrearEnf.btn.btn-success(
+          type="button"
+          data-bs-toggle="modal"
+          data-bs-target="#modalCrearEnf"
+        ) + Nuevo Evaluación
+
+      table.table.table-striped
+        thead
+          tr
+            th Fecha
+            th Enfermero
+            th Signos Vitales
+            th Síntomas
+            th Estado
+            th Acciones
+        tbody
+          if evaluacionesEnf.length > 0
+            each e in evaluacionesEnf
+              tr
+                td #{e.fecha.toLocaleString("es-AR")}
+                td #{e.Usuario.nombre} #{e.Usuario.apellido}
+                td 
+                  | PA: #{e.signosVitales.presionSistolica}/#{e.signosVitales.presionDiastolica} · 
+                  | FC: #{e.signosVitales.frecuenciaCardiaca} · 
+                  | FR: #{e.signosVitales.frecuenciaRespiratoria} · 
+                  | Temp: #{e.signosVitales.temperatura}°C
+                - const preview = e.sintomas ? e.sintomas.slice(0, 30) : '–'
+                td #{preview}...
+                td 
+                  if e.visible > 0
+                    span.bg-success.text-white(style="padding: 4px 10px; border-radius: 5px;") Activo
+                  else 
+                    span.bg-secondary.text-white(style="padding: 4px 10px; border-radius: 5px;") Inactivo
+                td
+                  if e.visible == 1
+                    button.btn.btn-sm.btn-outline-primary(
+                      type="button"
+                      data-bs-toggle="modal"
+                      data-bs-target="#modalVerEnf"
+                      data-id=e.idEvaluacionEnf
+                      data-fecha=e.fecha.toLocaleDateString("es-AR")
+                      data-enfermero=`${e.Usuario.nombre} ${e.Usuario.apellido}`
+                      data-antecedentes=e.antecedentes
+                      data-historial=e.historialMedico
+                      data-alergias=e.alergias
+                      data-medicacion=e.medicacionActual
+                      data-sintomas=e.sintomas
+                      data-ps=e.signosVitales.presionSistolica
+                      data-pd=e.signosVitales.presionDiastolica
+                      data-fc=e.signosVitales.frecuenciaCardiaca
+                      data-fr=e.signosVitales.frecuenciaRespiratoria
+                      data-temp=e.signosVitales.temperatura
+                      data-plan=e.planCuidados
+                    ) Ver
+                    button.btn.btn-sm.btn-danger.mx-1(
+                      type="button"
+                      data-bs-toggle="modal"
+                      data-bs-target="#modalBajaEnf"
+                      data-id=e.idEvaluacionEnf
+                    ) Dar de baja
+                  else
+                    button.btnAltaEnf.btn.btn-sm.btn-primary.mx-1(
+                      data-id=e.idEvaluacionEnf
+                    ) Dar de Alta
+          else
+            tr
+              td(colspan="6" class="text-center text-muted")
+                | No se registraron evalauciones de Enfermeria
+      
+      if totalPagesEnf > 1
+        nav.mt-4
+          ul.pagination
+            each n in Array(totalPagesEnf).fill(0).map((_, i) => i + 1)
+              li.page-item(class=pageEnf===n ? "active" : "")
+                a.page-link(
+                  href=`/admisiones/detalle/${admision.idAdmision}?estadoEnf=${estadoEnf}&estadoMed=${estadoMed}&pageEnf:${n}&pageMed:${pageMed}`
+                ) #{n}
+
+  // ============================
+  // SECCIÓN: Evaluaciones Médicas
+  // ============================
+  .card.mb-4
+    .card-header.bg-danger.text-white.d-flex.justify-content-between.align-items-center
+      h5.mb-0 Evaluaciones Médicas
+    
+    .card-body
+      .d-flex.justify-content-between.align-items-center
+        .btn-group
+          a.btn.btn-outline-primary(
+            href=`/admisiones/detalle/${admision.idAdmision}?estadoEnf=${estadoEnf}&estadoMed=todos&pageEnf:${pageEnf}`
+            class=estadoMed==="todos" ? "active" : ""
+          ) Todos
+
+          a.btn.btn-outline-success(
+            href=`/admisiones/detalle/${admision.idAdmision}?estadoEnf=${estadoEnf}&estadoMed=activos&pageEnf:${pageEnf}`
+            class=estadoMed==="activos" ? "active" : ""
+          ) Activos
+
+          a.btn.btn-outline-secondary(
+            href=`/admisiones/detalle/${admision.idAdmision}?estadoEnf=${estadoEnf}&estadoMed=inactivos&pageEnf:${pageEnf}`
+            class=estadoMed==="inactivos" ? "active" : ""
+          ) Inactivos
+      
+        button#btnCrearMed.btn.btn-success(
+          type="button"
+          data-bs-toggle="modal"
+          data-bs-target="#modalCrearMed"
+        ) + Nuevo Evaluación
+
+      table.table.table-striped
+        thead
+          tr
+          th Fecha
+          th Médico
+          th Diagnóstico
+          th Indicaciones
+          th Estado
+          th Acciones
+        tbody
+          if evaluacionesMed.length > 0
+            each e in evaluacionesMed
+              tr
+                td #{e.fecha.toLocaleString("es-AR")}
+                td #{e.Usuario.nombre} #{e.Usuario.apellido}
+                td #{e.diagnostico.slice(0, 25)}...
+                - const preview = e.indicaciones ? e.indicaciones.slice(0, 30) : '–'
+                td #{preview}...
+                td 
+                  if e.visible > 0
+                    span.bg-success.text-white(style="padding: 4px 10px; border-radius: 5px;") Activo
+                  else 
+                    span.bg-secondary.text-white(style="padding: 4px 10px; border-radius: 5px;") Inactivo
+                td
+                  if e.visible == 1
+                    a.btn.btn-sm.btn-outline-primary(href=`/medicina/ver/${e.idEvaluacionMed}`) Ver
+                    button.btn.btn-sm.btn-danger.mx-1(
+                      type="button"
+                      data-bs-toggle="modal"
+                      data-bs-target="#modalBajaMed"
+                      data-id=e.idEvaluacionMed
+                    ) Dar de baja
+                  else
+                    button.btnAltaMed.btn.btn-sm.btn-primary.mx-1(
+                      data-id=e.idEvaluacionMed
+                    ) Dar de Alta
+          else
+            tr
+              td(colspan="6" class="text-center text-muted")
+                | No se registraron evalauciones Médicas
+      
+      if totalPagesMed > 1
+        nav.mt-4
+          ul.pagination
+            each n in Array(totalPagesMed).fill(0).map((_, i) => i + 1)
+              li.page-item(class=pageMed===n ? "active" : "")
+                a.page-link(
+                  href=`/admisiones/detalle/${admision.idAdmision}?estadoEnf=${estadoEnf}&estadoMed=${estadoMed}&pageEnf:${pageEnf}&pageMed:${n}`
+                ) #{n}
+
+  //- MODAL CREAR ENFERMERIA 
+  #modalCrearEnf.modal.fade(tabindex="-1" aria-hidden="true")
+    .modal-dialog.modal-lg
+      .modal-content
+        .modal-header
+          h5.modal-title Nueva Evaluación de Enfermería
+          button.btn-close(type="button", data-bs-dismiss="modal")
+
+        .modal-body
+          form#formCrearEnf
+            input(type="hidden" name="admisionId" value=admision.idAdmision required)
+
+            h6.mb-3.text-primary Información Relevante del Paciente
+            .row
+              .col-md-6.mb-3
+                label.form-label Historial Médico
+                textarea.form-control(name="historialMedico" rows="2" required)
+
+              .col-md-6.mb-3
+                label.form-label Antecedentes
+                textarea.form-control(name="antecedentes" rows="2" required)
+
+            .row
+              .col-md-6.mb-3
+                label.form-label Alergias
+                textarea.form-control(name="alergias" rows="2" required)
+
+              .col-md-6.mb-3
+                label.form-label Medicación Actual
+                textarea.form-control(name="medicacionActual" rows="2" required)
+
+            .mb-3
+              label.form-label Síntomas
+              textarea.form-control(name="sintomas" rows="2" required)
+
+            hr
+
+            h6.mb-3.text-primary Signos Vitales
+
+            .row
+              .col-md-4.mb-3
+                label.form-label Presión Sistólica (mmHg)
+                input.form-control(type="number" min="0" name="presionSistolica" required)
+
+              .col-md-4.mb-3
+                label.form-label Presión Diastólica (mmHg)
+                input.form-control(type="number" min="0" name="presionDiastolica" required)
+
+              .col-md-4.mb-3
+                label.form-label Frecuencia Cardíaca (lpm)
+                input.form-control(type="number" min="0" name="frecuenciaCardiaca" required)
+
+            .row
+              .col-md-6.mb-3
+                label.form-label Frecuencia Respiratoria (rpm)
+                input.form-control(type="number" min="0" name="frecuenciaRespiratoria" required)
+
+              .col-md-6.mb-3
+                label.form-label Temperatura (°C)
+                input.form-control(type="number" step="0.1" min="30" max="43" name="temperatura" required)
+
+            hr
+
+            h6.mb-3.text-primary Plan de Cuidados
+            .mb-3
+              textarea.form-control(name="planCuidados" rows="3" required)
+
+        .modal-footer
+          button.btn.btn-secondary(type="button" data-bs-dismiss="modal") Cancelar
+          button.btn.btn-primary(type="submit" form="formCrearEnf") Guardar
+
+  //- MODAL VER EVALUACION ENFERMERIA
+  #modalVerEnf.modal.fade(tabindex="-1" aria-hidden="true")
+    .modal-dialog.modal-lg
+      .modal-content
+        .modal-header
+          h5.modal-title Evaluación de Enfermería
+          button.btn-close(type="button", data-bs-dismiss="modal")
+
+        .modal-body
+          h6.mb-3.text-primary Información General
+          .row
+            .col-md-6.mb-2
+              strong Fecha: 
+              span.ver-fecha
+            .col-md-6.mb-2
+              strong Enfermero/a: 
+              span.ver-enfermero
+
+          hr
+
+          h6.mb-3.text-primary Información Clínica
+          .row
+            .col-md-6.mb-3
+              strong Historial Médico: 
+              span.ver-historial
+
+            .col-md-6.mb-3
+              strong Antecedentes: 
+              span.ver-antecedentes
+
+          .row
+            .col-md-6.mb-3
+              strong Alergias: 
+              span.ver-alergias
+
+            .col-md-6.mb-3
+              strong Medicación Actual: 
+              span.ver-medicacion
+
+          .mb-3
+            strong Síntomas: 
+            span.ver-sintomas.mt-1
+
+          hr
+
+          h6.mb-3.text-primary Signos Vitales
+          .row
+            .col-md-6.mb-3
+              strong PS/PD: 
+              span.ver-ps mmHg
+              span /
+              span.ver-pd mmHg
+
+            .col-md-6.mb-3
+              strong Frecuencia Cardíaca: 
+              span.ver-fc lpm
+
+          .row
+            .col-md-6.mb-3
+              strong Frecuencia Respiratoria: 
+              span.ver-fr rpm
+
+            .col-md-6.mb-3
+              strong Temperatura: 
+              span.ver-temp °C
+
+          hr
+
+          h6.mb-3.text-primary Plan de Cuidados 
+          span.ver-plan
+
+        .modal-footer
+          button.btn.btn-secondary(type="button", data-bs-dismiss="modal") Cerrar
+
+  //- MODAL CREAR MEDICINA 
+  #modalCrearMed.modal.fade(tabindex="-1" aria-hidden="true")
+    .modal-dialog.modal-lg
+      .modal-content
+        .modal-header
+          h5.modal-title Nueva Evaluación Médica
+          button.btn-close(type="button", data-bs-dismiss="modal")
+
+        .modal-body
+          form#formCrearMed
+            input(type="hidden" name="admisionId" value=admision.idAdmision required)
+
+            .mb-3
+              label.form-label Diagnóstico
+              textarea.form-control(name="diagnostico" rows="2" required)
+
+            .mb-3
+              label.form-label Indicaciones
+              textarea.form-control(name="indicaciones" rows="2" required)
+
+            .mb-3
+              label.form-label Medicación
+              textarea.form-control(name="medicacion" rows="2" required)
+
+            .mb-3
+              label.form-label Terapias
+              textarea.form-control(name="terapias" rows="2" required)
+
+        .modal-footer
+          button.btn.btn-secondary(type="button" data-bs-dismiss="modal") Cancelar
+          button.btn.btn-primary(type="submit" form="formCrearMed") Guardar
+
+  //- MODAL ENFERMERIA PARA CONFIRMAR LA BAJA LOGICA
+  #modalBajaEnf.modal.fade(tabindex="-1" aria-hidden="true")
+    .modal-dialog
+      .modal-content
+        .modal-header
+          h5.modal-title Bajar Evaluación de Enfermería
+          button.btn-close(type="button", data-bs-dismiss="modal")
+
+        .modal-body
+          p Seguro que deseas bajar la
+            strong Evaluación de Enfermería
+
+        .modal-footer
+          button.btn.btn-secondary(type="button" data-bs-dismiss="modal") Cancelar
+          button.btn.btn-danger#btnBajaEnf(type="button") Confirmar
+
+  //- MODAL MEDICINA PARA CONFIRMAR LA BAJA LOGICA
+  #modalBajaMed.modal.fade(tabindex="-1" aria-hidden="true")
+    .modal-dialog
+      .modal-content
+        .modal-header
+          h5.modal-title Bajar Evaluación Médica
+          button.btn-close(type="button", data-bs-dismiss="modal")
+
+        .modal-body
+          p Seguro que deseas bajar la
+            strong Evaluación Médica
+
+        .modal-footer
+          button.btn.btn-secondary(type="button" data-bs-dismiss="modal") Cancelar
+          button.btn.btn-danger#btnBajaMed(type="button") Confirmar
+
+  script.
+
+    // FUNCIONES GLOBALES DE GUARDAR SCROLL
+    function guardarScroll() {
+      localStorage.setItem("scrollAdmision", window.scrollY);
+    }
+
+    function restaurarScroll() {
+      const y = localStorage.getItem("scrollAdmision");
+      if (y !== null) {
+        window.scrollTo(0, parseInt(y));
+        localStorage.removeItem("scrollAdmision");
+      }
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      restaurarScroll();
+
+      // -------- QUITAR FOCUS DE MODALES SI SE OCULTAN --------
+      document.querySelectorAll('.modal').forEach(modal => {
+        modal.addEventListener("hidden.bs.modal", () => {
+          document.activeElement.blur();
+          document.body.focus();
+        });
+      });
+
+      // Guardar scroll al hacer clic en cualquier filtro
+      document.querySelectorAll("a[href*='estadoEnf'], a[href*='estadoMed'], a.page-link")
+        .forEach(link => {
+          link.addEventListener("click", () => {
+            guardarScroll();
+          });
+        });
+
+      // -------- MODAL VER ENFERMERIA ---------
+      const modalVer = document.getElementById("modalVerEnf");
+
+      modalVer.addEventListener("show.bs.modal", (event) => {
+        const btn = event.relatedTarget;
+
+        // Obtener los campos
+        const fecha = btn.dataset.fecha;
+        const enfermero = btn.dataset.enfermero;
+        const antecedentes = btn.dataset.antecedentes;
+        const historial = btn.dataset.historial;
+        const alergias = btn.dataset.alergias;
+        const medicacion = btn.dataset.medicacion;
+        const sintomas = btn.dataset.sintomas;
+        const ps = btn.dataset.ps;
+        const pd = btn.dataset.pd;
+        const fc = btn.dataset.fc;
+        const fr = btn.dataset.fr;
+        const temp = btn.dataset.temp;
+        const plan = btn.dataset.plan;
+
+        // Volcar en el modal
+        modalVer.querySelector(".ver-fecha").textContent = fecha;
+        modalVer.querySelector(".ver-enfermero").textContent = enfermero;
+        modalVer.querySelector(".ver-antecedentes").textContent = antecedentes || "—";
+        modalVer.querySelector(".ver-historial").textContent = historial || "—";
+        modalVer.querySelector(".ver-alergias").textContent = alergias || "—";
+        modalVer.querySelector(".ver-medicacion").textContent = medicacion || "—";
+        modalVer.querySelector(".ver-sintomas").textContent = sintomas || "—";
+        modalVer.querySelector(".ver-ps").textContent = ps;
+        modalVer.querySelector(".ver-pd").textContent = pd+" mmHg";
+        modalVer.querySelector(".ver-fc").textContent = fc+" lpm";
+        modalVer.querySelector(".ver-fr").textContent = fr+" rpm";
+        modalVer.querySelector(".ver-temp").textContent = temp+" °C";
+        modalVer.querySelector(".ver-plan").textContent = plan || "—";
+      });
+
+      // -------- CREAR ENFERMERIA --------
+      const formCrearEnf = document.getElementById("formCrearEnf");
+
+      if (formCrearEnf) {
+        formCrearEnf.addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const data = Object.fromEntries(new FormData(formCrearEnf));
+
+          const res = await fetch("/enfermeria/crear", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data)
+          });
+
+          const json = await res.json();
+          if (json.ok) {
+            localStorage.setItem("scrollAdmision", window.scrollY);
+            location.reload();
+          }
+          else alert(json.error);
+        });
+      }
+
+      // -------- CREAR MEDICINA --------
+      const formCrearMed = document.getElementById("formCrearMed");
+
+      if (formCrearMed) {
+        formCrearMed.addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const data = Object.fromEntries(new FormData(formCrearMed));
+
+          const res = await fetch("/medicina/crear", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data)
+          });
+
+          const json = await res.json();
+          if (json.ok) {
+            localStorage.setItem("scrollAdmision", window.scrollY);
+            location.reload();
+          }
+          else alert(json.error);
+        });
+      }
+
+      // -------- BAJA ENFERMERIA --------
+      const modalBajaEnf = document.getElementById("modalBajaEnf");
+      const btnBajaEnf = document.getElementById("btnBajaEnf");
+
+      modalBajaEnf.addEventListener("show.bs.modal", (event) => {
+        const button = event.relatedTarget;
+        const id = button.dataset.id;
+
+        btnBajaEnf.dataset.id = id;
+      });
+
+      btnBajaEnf.addEventListener("click", async () => {
+        const id = btnBajaEnf.dataset.id;
+
+        console.log("id: ", id);
+
+        const res = await fetch(`/enfermeria/baja/${id}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" }
+        });
+
+        const json = await res.json();
+
+        if (json.ok) {
+          localStorage.setItem("scrollAdmision", window.scrollY);
+          location.reload();
+        }
+        else alert(json.error || "Error al dar de baja la evalaución de enfermeria");
+      });
+
+      // -------- BAJA MEDICINA --------
+      const modalBajaMed = document.getElementById("modalBajaMed");
+      const btnBajaMed = document.getElementById("btnBajaMed");
+
+      modalBajaMed.addEventListener("show.bs.modal", (event) => {
+        const button = event.relatedTarget;
+        const id = button.dataset.id;
+
+        btnBajaMed.dataset.id = id;
+      });
+
+      btnBajaMed.addEventListener("click", async () => {
+        const id = btnBajaMed.dataset.id;
+
+        const res = await fetch(`/medicina/baja/${id}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" }
+        });
+
+        const json = await res.json();
+
+        if (json.ok) {
+          localStorage.setItem("scrollAdmision", window.scrollY);
+          location.reload();
+        }
+        else alert(json.error || "Error al dar de baja la evalaución médica");
+      });
+
+      // -------- ALTA ENFERMERIA --------
+      const btnAltaEnf = document.querySelectorAll(".btnAltaEnf");
+
+      btnAltaEnf.forEach(btn => {
+        btn.addEventListener("click", async () => {
+
+          const id = btn.dataset.id;
+
+          const res = await fetch(`/enfermeria/alta/${id}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" }
+          });
+
+          const json = await res.json();
+
+          if (json.ok) {
+            localStorage.setItem("scrollAdmision", window.scrollY);
+            location.reload();
+          }
+          else alert(json.error || "Error al dar de alta la evalaución de enfermeria");
+        });
+      });
+
+      // -------- ALTA MEDICINA --------
+      const btnAltaMed = document.querySelectorAll(".btnAltaMed");
+
+      btnAltaMed.forEach(btn => {
+        btn.addEventListener("click", async () => {
+
+          const id = btn.dataset.id;
+
+          const res = await fetch(`/medicina/alta/${id}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" }
+          });
+
+          const json = await res.json();
+
+          if (json.ok) {
+            localStorage.setItem("scrollAdmision", window.scrollY);
+            location.reload();
+          }
+          else alert(json.error || "Error al dar de alta la evalaución médica");
+        });
+      });
+
+      // === RESTAURAR SCROLL ===
+      document.addEventListener("DOMContentLoaded", () => {
+        const y = localStorage.getItem("scrollAdmision");
+        if (y !== null) {
+          window.scrollTo(0, parseInt(y));
+          localStorage.removeItem("scrollAdmision");
+        }
+      });
+    });

@@ -80,6 +80,9 @@ block content
               else 
                 span.bg-primary.text-white(style="padding: 4px 10px; border-radius: 5px;") #{a.estado}
             td
+              a.btnVerDetalle.btn.btn-sm.btn-info.mx-1(
+                href=`/admisiones/detalle/${a.idAdmision}`
+              ) Ver Detalles
               if a.estado == 'activa'
                 button.btn.btn-sm.btn-danger.mx-1(
                   type="button"
@@ -348,7 +351,7 @@ block content
         });
       }
 
-      // -------- BAJA ADMISION --------
+      // -------- CANCELAR ADMISION --------
       const modalBaja = document.getElementById("modalBajaAdmision");
       const btnBaja = document.getElementById("btnConfirmarBaja");
 

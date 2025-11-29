@@ -12,6 +12,8 @@ import alaRoutes from './routes/alaRoutes.js';
 import habitacionRoutes from './routes/habitacionRoutes.js';
 import camaRoutes from './routes/camaRoutes.js';
 import admisionRoutes from './routes/admisionRoutes.js';
+import enfermeriaRoutes from './routes/enfermeriaRoutes.js';
+import medicinaRoutes from './routes/medicinaRoutes.js';
 
 sequelize.authenticate()
     .then(() => console.log('Conexión a MySQL correcta'))
@@ -57,6 +59,8 @@ app.use('/alas', alaRoutes);
 app.use('/habitaciones', habitacionRoutes);
 app.use('/camas', camaRoutes);
 app.use('/admisiones', admisionRoutes);
+app.use('/enfermeria', enfermeriaRoutes);
+app.use('/medicina', medicinaRoutes);
 
 // Página principal -> login
 app.get('/', (req, res) => {
