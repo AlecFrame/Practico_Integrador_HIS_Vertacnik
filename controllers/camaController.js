@@ -91,10 +91,6 @@ export const crear = async (req, res) => {
           }]
         });
 
-        console.log("Hola");
-        console.log("habitacionId: ", habitacionId);
-        console.log("habitacion: ", habitacion);
-
         if (!habitacion) {
             return res.json({ ok: false, error: 'Habitación no encontrada' });
         }
@@ -237,5 +233,17 @@ export const filtrarHabitaciones = async (req, res) => {
     return res.json({ ok: true, habitaciones: habitaciones });
   } catch (error) {
     return res.json({ ok: false, habitaciones: [], error: error });
+  }
+};
+
+export const filtrarCamas = async (req, res) => {
+  try {
+    const camas = await Cama.findAll({
+      where: { habitacionId: req.params.idHabitacion, visible: 1 }
+    });
+
+    return res.json({ ok: true, camas: camas });
+  } catch (error) {
+    return res.json({ ok: false, camas: [], error: error });
   }
 };

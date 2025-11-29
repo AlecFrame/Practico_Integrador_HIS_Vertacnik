@@ -121,8 +121,8 @@ block content
                 ) Dar de Alta
       else
         tr
-          td(colspan="9" class="text-center text-muted")
-            | No hay camas registradas
+          td(colspan="8" class="text-center text-muted")
+            | No se encontraron camas
   
   if totalPages > 1
     nav.mt-4
@@ -280,6 +280,13 @@ block content
       });
 
       formCrear.alaId.addEventListener("change", async () => {
+        if (formCrear.alaId.value==0) {
+          formCrear.habitacionId.innerHTML = `<option value="0">Falta especificar</option>`;
+          formCrear.habitacionId.disabled = true;
+
+          return;
+        }
+
         const res = await fetch(`/camas/api/habitaciones/${formCrear.alaId.value}`);
         const resJson = await res.json();
         const habitaciones = resJson.habitaciones;
@@ -368,6 +375,13 @@ block content
       });
 
       formEditar.alaId.addEventListener("change", async () => {
+        if (formEditar.alaId.value==0) {
+          formEditar.habitacionId.innerHTML = `<option value="0">Falta especificar</option>`;
+          formEditar.habitacionId.disabled = true;
+
+          return;
+        }
+
         const res = await fetch(`/camas/api/habitaciones/${formEditar.alaId.value}`);
         const resJson = await res.json();
         const habitaciones = resJson.habitaciones;
