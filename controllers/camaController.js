@@ -247,3 +247,18 @@ export const filtrarCamas = async (req, res) => {
     return res.json({ ok: false, camas: [], error: error });
   }
 };
+
+export const cambiarEstado = async (req, res) => {
+  const nuevoEstado = req.params.estado;
+
+  try {
+    await Cama.update(
+      { estado: nuevoEstado },
+      { where: { idCama: req.params.id } }
+    );
+
+    return res.json({ ok: true });
+  } catch (err) {
+    return res.json({ ok: false, error: "Error al cambiar el estado" });
+  }
+};

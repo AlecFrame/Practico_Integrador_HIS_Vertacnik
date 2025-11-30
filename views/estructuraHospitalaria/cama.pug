@@ -72,7 +72,7 @@ block content
         th Unidad
         th Estado
         th Habilitación
-        if (user.rol == 'admin')
+        if (['admin', 'enfermeria'].includes(user.rol))
           th Acciones
     tbody
       if camas.length > 0
@@ -97,7 +97,7 @@ block content
                 span.bg-success.text-white(style="padding: 4px 10px; border-radius: 5px;") Activo
               else 
                 span.bg-secondary.text-white(style="padding: 4px 10px; border-radius: 5px;") Inactivo
-            if (user.rol == 'admin')
+            if (['admin', 'enfermeria'].includes(user.rol))
               td
                 if c.visible == 1
                   button.btn.btn-sm.btn-warning.mx-1(
@@ -111,14 +111,15 @@ block content
                     data-unidad-id=c.Habitacion.Ala.Unidad.idUnidad
                     data-estado=c.estado
                   ) Editar
-                  button.btn.btn-sm.btn-danger.mx-1(
-                    type="button"
-                    data-bs-toggle="modal"
-                    data-bs-target="#modalBajaCama"
-                    data-id=c.idCama
-                    data-numero=`${c.numero}`
-                  ) Dar de baja
-                else
+                  if (user.rol=='admin')
+                    button.btn.btn-sm.btn-danger.mx-1(
+                      type="button"
+                      data-bs-toggle="modal"
+                      data-bs-target="#modalBajaCama"
+                      data-id=c.idCama
+                      data-numero=`${c.numero}`
+                    ) Dar de baja
+                else if (user.rol=='admin')
                   button.btnAltaCama.btn.btn-sm.btn-primary.mx-1(
                     data-id=c.idCama
                   ) Dar de Alta
@@ -177,50 +178,6 @@ block content
             button.btn.btn-secondary(type="button" data-bs-dismiss="modal") Cancelar
             button.btn.btn-primary(type="submit" form="formCrearCama") Guardar
 
-    //- MODAL EDITAR CAMA
-    #modalEditarCama.modal.fade(tabindex="-1" aria-hidden="true")
-      .modal-dialog
-        .modal-content
-          .modal-header
-            h5.modal-title Editar Cama
-            button.btn-close(type="button", data-bs-dismiss="modal")
-
-          .modal-body
-            form#formEditarCama
-              input(type="hidden" name="id")
-
-              .mb-3
-                label.form-label Unidad
-                select.form-control(name="unidadId")
-                  each u in unidades
-                    option(value=u.idUnidad) #{u.nombre}
-              
-              .mb-3
-                label.form-label Ala
-                select.form-control(name="alaId")
-                  option(value=0) Falta especificadar
-              
-              .mb-3
-                label.form-label Habitación
-                select.form-control(name="habitacionId")
-                  option(value=0) Falta especificadar
-
-              .mb-3
-                label.form-label Número
-                input.form-control(name="numero" required)
-
-              .mb-3
-                label.form-label Estado
-                select.form-control(name="estado")
-                  option(value='libre') Libre
-                  option(value='ocupada') Ocupada
-                  option(value='sucia') Sucia
-                  option(value='mantenimiento') Mantenimiento
-
-          .modal-footer
-            button.btn.btn-secondary(type="button" data-bs-dismiss="modal") Cancelar
-            button.btn.btn-primary(type="submit" form="formEditarCama") Guardar Cambios
-
     //- MODAL PARA CONFIRMAR LA BAJA LOGICA
     #modalBajaCama.modal.fade(tabindex="-1" aria-hidden="true")
       .modal-dialog
@@ -238,9 +195,56 @@ block content
             button.btn.btn-secondary(type="button" data-bs-dismiss="modal") Cancelar
             button.btn.btn-danger#btnConfirmarBaja(type="button") Baja lógica
 
+  if (['admin', 'enfermeria'].includes(user.rol))
+    //- MODAL EDITAR CAMA
+    #modalEditarCama.modal.fade(tabindex="-1" aria-hidden="true")
+      .modal-dialog
+        .modal-content
+          .modal-header
+            h5.modal-title Editar Cama
+            button.btn-close(type="button", data-bs-dismiss="modal")
+
+          .modal-body
+            form#formEditarCama
+              input(type="hidden" name="id")
+
+              if (user.rol=='admin')
+                .mb-3
+                  label.form-label Unidad
+                  select.form-control(name="unidadId")
+                    each u in unidades
+                      option(value=u.idUnidad) #{u.nombre}
+                
+                .mb-3
+                  label.form-label Ala
+                  select.form-control(name="alaId")
+                    option(value=0) Falta especificadar
+                
+                .mb-3
+                  label.form-label Habitación
+                  select.form-control(name="habitacionId")
+                    option(value=0) Falta especificadar
+
+                .mb-3
+                  label.form-label Número
+                  input.form-control(name="numero" required)
+
+              .mb-3
+                label.form-label Estado
+                select.form-control(name="estado")
+                  option(value='libre') Libre
+                  option(value='ocupada') Ocupada
+                  option(value='sucia') Sucia
+                  option(value='mantenimiento') Mantenimiento
+
+          .modal-footer
+            button.btn.btn-secondary(type="button" data-bs-dismiss="modal") Cancelar
+            button.btn.btn-primary(type="submit" form="formEditarCama") Guardar Cambios
+
   script.
     document.addEventListener("DOMContentLoaded", () => {
-      
+      const user = !{JSON.stringify(user)};
+
       // -------- QUITAR FOCUS DE MODALES SI SE OCULTAN --------
       document.querySelectorAll('.modal').forEach(modal => {
         modal.addEventListener("hidden.bs.modal", () => {
@@ -326,94 +330,123 @@ block content
       const formEditar = document.getElementById("formEditarCama");
 
       if (modalEditar && formEditar) {
-        modalEditar.addEventListener("show.bs.modal", async (event) => {
-          const button = event.relatedTarget;
+        if (user.rol=='admin') {
+          modalEditar.addEventListener("show.bs.modal", async (event) => {
+            const button = event.relatedTarget;
 
-          formEditar.id.value = button.dataset.id;
-          formEditar.numero.value = button.dataset.numero;
+            formEditar.id.value = button.dataset.id;
+            formEditar.numero.value = button.dataset.numero;
 
-          const unidadId = button.dataset.unidadId;
-          formEditar.unidadId.value = unidadId;
+            const unidadId = button.dataset.unidadId;
+            formEditar.unidadId.value = unidadId;
 
-          const resAla = await fetch(`/camas/api/alas/${unidadId}`);
-          const resAlaJson = await resAla.json();
-          const alas = resAlaJson.alas;
+            const resAla = await fetch(`/camas/api/alas/${unidadId}`);
+            const resAlaJson = await resAla.json();
+            const alas = resAlaJson.alas;
 
-          formEditar.alaId.innerHTML = `<option value="0">Falta especificar</option>`;
-          formEditar.habitacionId.innerHTML = `<option value="0">Falta especificar</option>`;
-          formEditar.habitacionId.disabled = false;
+            formEditar.alaId.innerHTML = `<option value="0">Falta especificar</option>`;
+            formEditar.habitacionId.innerHTML = `<option value="0">Falta especificar</option>`;
+            formEditar.habitacionId.disabled = false;
 
-          alas.forEach(a => {
-            formEditar.alaId.innerHTML += `<option value="${a.idAla}">${a.nombre}</option>`;
+            alas.forEach(a => {
+              formEditar.alaId.innerHTML += `<option value="${a.idAla}">${a.nombre}</option>`;
+            });
+
+            const alaId = button.dataset.alaId;
+            formEditar.alaId.value = alaId;
+
+            const resHab = await fetch(`/camas/api/habitaciones/${alaId}`);
+            const resHabJson = await resHab.json();
+            const habitaciones = resHabJson.habitaciones;
+
+            habitaciones.forEach(h => {
+              formEditar.habitacionId.innerHTML += `<option value="${h.idHabitacion}">${h.numero} - ${h.tipo}</option>`;
+            });
+
+            const habitacionId = button.dataset.habitacionId;
+            formEditar.habitacionId.value = habitacionId;
+            
+            const estado = button.dataset.estado;
+            formEditar.estado.value = estado;
           });
 
-          const alaId = button.dataset.alaId;
-          formEditar.alaId.value = alaId;
+          formEditar.unidadId.addEventListener("change", async () => {
+            const res = await fetch(`/camas/api/alas/${formEditar.unidadId.value}`);
+            const resJson = await res.json();
+            const alas = resJson.alas;
 
-          const resHab = await fetch(`/camas/api/habitaciones/${alaId}`);
-          const resHabJson = await resHab.json();
-          const habitaciones = resHabJson.habitaciones;
-
-          habitaciones.forEach(h => {
-            formEditar.habitacionId.innerHTML += `<option value="${h.idHabitacion}">${h.numero} - ${h.tipo}</option>`;
-          });
-
-          const habitacionId = button.dataset.habitacionId;
-          formEditar.habitacionId.value = habitacionId;
-          
-          const estado = button.dataset.estado;
-          formEditar.estado.value = estado;
-        });
-
-        formEditar.unidadId.addEventListener("change", async () => {
-          const res = await fetch(`/camas/api/alas/${formEditar.unidadId.value}`);
-          const resJson = await res.json();
-          const alas = resJson.alas;
-
-          formEditar.alaId.innerHTML = `<option value="0">Falta especificar</option>`;
-          formEditar.habitacionId.innerHTML = `<option value="0">Falta especificar</option>`;
-          formEditar.habitacionId.disabled = true;
-          
-          alas.forEach(a => {
-            formEditar.alaId.innerHTML += `<option value="${a.idAla}">${a.nombre}</option>`;
-          });
-        });
-
-        formEditar.alaId.addEventListener("change", async () => {
-          if (formEditar.alaId.value==0) {
+            formEditar.alaId.innerHTML = `<option value="0">Falta especificar</option>`;
             formEditar.habitacionId.innerHTML = `<option value="0">Falta especificar</option>`;
             formEditar.habitacionId.disabled = true;
-
-            return;
-          }
-
-          const res = await fetch(`/camas/api/habitaciones/${formEditar.alaId.value}`);
-          const resJson = await res.json();
-          const habitaciones = resJson.habitaciones;
-
-          formEditar.habitacionId.innerHTML = `<option value="0">Falta especificar</option>`;
-          
-          habitaciones.forEach(h => {
-            formEditar.habitacionId.innerHTML += `<option value="${h.idHabitacion}">${h.numero} - ${h.tipo}</option>`;
+            
+            alas.forEach(a => {
+              formEditar.alaId.innerHTML += `<option value="${a.idAla}">${a.nombre}</option>`;
+            });
           });
 
-          formEditar.habitacionId.disabled = false;
-        });
+          formEditar.alaId.addEventListener("change", async () => {
+            if (formEditar.alaId.value==0) {
+              formEditar.habitacionId.innerHTML = `<option value="0">Falta especificar</option>`;
+              formEditar.habitacionId.disabled = true;
+
+              return;
+            }
+
+            const res = await fetch(`/camas/api/habitaciones/${formEditar.alaId.value}`);
+            const resJson = await res.json();
+            const habitaciones = resJson.habitaciones;
+
+            formEditar.habitacionId.innerHTML = `<option value="0">Falta especificar</option>`;
+            
+            habitaciones.forEach(h => {
+              formEditar.habitacionId.innerHTML += `<option value="${h.idHabitacion}">${h.numero} - ${h.tipo}</option>`;
+            });
+
+            formEditar.habitacionId.disabled = false;
+          });
+        }else {
+          modalEditar.addEventListener("show.bs.modal", async (event) => {
+            const button = event.relatedTarget;
+
+            formEditar.id.value = button.dataset.id;
+            
+            const estado = button.dataset.estado;
+            formEditar.estado.value = estado;
+          });
+        }
 
         formEditar.addEventListener("submit", async (e) => {
           e.preventDefault();
 
-          const data = Object.fromEntries(new FormData(formEditar));
+          if (user.rol=='admin') {
+            const data = Object.fromEntries(new FormData(formEditar));
 
-          const res = await fetch(`/camas/editar/${data.id}`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(data)
-          });
+            const res = await fetch(`/camas/editar/${data.id}`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(data)
+            });
 
-          const json = await res.json();
-          if (json.ok) location.reload();
-          else alert(json.error);
+            const json = await res.json();
+            if (json.ok) location.reload();
+            else alert(json.error);
+          }else {
+            const data = Object.fromEntries(new FormData(formEditar));
+
+            const id = data.id;
+            const estado = data.estado;
+
+            console.log("id: ", id,", estado: ", estado);
+
+            const res = await fetch(`/camas/cambiarEstado/${id}&${estado}`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" }
+            });
+
+            const json = await res.json();
+            if (json.ok) location.reload();
+            else alert(json.error);
+          }
         });
       }
 
