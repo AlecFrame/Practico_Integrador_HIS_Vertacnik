@@ -36,11 +36,12 @@ block content
 
       button.btn.btn-outline-primary(type="submit") Buscar
 
-    button.btn.btn-success.mx-3.mt-3(
-      type="button"
-      data-bs-toggle="modal"
-      data-bs-target="#modalCrearUnidad"
-    ) + Nueva Unidad
+    if (user.rol == 'admin')
+      button.btn.btn-success.mx-3.mt-3(
+        type="button"
+        data-bs-toggle="modal"
+        data-bs-target="#modalCrearUnidad"
+      ) + Nueva Unidad
 
   table.table.table-striped.mt-3
     thead
@@ -48,7 +49,8 @@ block content
         th ID
         th Nombre
         th Estado
-        th Acciones
+        if (user.rol == 'admin')
+          th Acciones
     tbody
       if unidades.length > 0
         each u in unidades
@@ -60,26 +62,27 @@ block content
                 span.bg-success.text-white(style="padding: 4px 10px; border-radius: 5px;") Activo
               else 
                 span.bg-secondary.text-white(style="padding: 4px 10px; border-radius: 5px;") Inactivo
-            td
-              if u.visible == 1
-                button.btn.btn-sm.btn-warning.mx-1(
-                  type="button"
-                  data-bs-toggle="modal"
-                  data-bs-target="#modalEditarUnidad"
-                  data-id=u.idUnidad
-                  data-nombre=u.nombre
-                ) Editar
-                button.btn.btn-sm.btn-danger.mx-1(
-                  type="button"
-                  data-bs-toggle="modal"
-                  data-bs-target="#modalBajaUnidad"
-                  data-id=u.idUnidad
-                  data-nombre=`${u.nombre}`
-                ) Dar de baja
-              else
-                button.btnAltaUnidad.btn.btn-sm.btn-primary.mx-1(
-                  data-id=u.idUnidad
-                ) Dar de Alta
+            if (user.rol == 'admin')
+              td
+                if u.visible == 1
+                  button.btn.btn-sm.btn-warning.mx-1(
+                    type="button"
+                    data-bs-toggle="modal"
+                    data-bs-target="#modalEditarUnidad"
+                    data-id=u.idUnidad
+                    data-nombre=u.nombre
+                  ) Editar
+                  button.btn.btn-sm.btn-danger.mx-1(
+                    type="button"
+                    data-bs-toggle="modal"
+                    data-bs-target="#modalBajaUnidad"
+                    data-id=u.idUnidad
+                    data-nombre=`${u.nombre}`
+                  ) Dar de baja
+                else
+                  button.btnAltaUnidad.btn.btn-sm.btn-primary.mx-1(
+                    data-id=u.idUnidad
+                  ) Dar de Alta
       else
         tr
           td(colspan="4" class="text-center text-muted")
@@ -94,60 +97,61 @@ block content
               href=`/unidades?estado=${estado}&buscar=${buscar}&page=${n}`
             ) #{n}
   
-  //- MODAL CREAR UNIDAD
-  #modalCrearUnidad.modal.fade(tabindex="-1" aria-hidden="true")
-    .modal-dialog
-      .modal-content
-        .modal-header
-          h5.modal-title Nueva Unidad
-          button.btn-close(type="button", data-bs-dismiss="modal")
+  if (user.rol == 'admin')
+    //- MODAL CREAR UNIDAD
+    #modalCrearUnidad.modal.fade(tabindex="-1" aria-hidden="true")
+      .modal-dialog
+        .modal-content
+          .modal-header
+            h5.modal-title Nueva Unidad
+            button.btn-close(type="button", data-bs-dismiss="modal")
 
-        .modal-body
-          form#formCrearUnidad
-            .mb-3
-              label.form-label Nombre
-              input.form-control(name="nombre" required)
+          .modal-body
+            form#formCrearUnidad
+              .mb-3
+                label.form-label Nombre
+                input.form-control(name="nombre" required)
 
-        .modal-footer
-          button.btn.btn-secondary(type="button" data-bs-dismiss="modal") Cancelar
-          button.btn.btn-primary(type="submit" form="formCrearUnidad") Guardar
+          .modal-footer
+            button.btn.btn-secondary(type="button" data-bs-dismiss="modal") Cancelar
+            button.btn.btn-primary(type="submit" form="formCrearUnidad") Guardar
 
-  //- MODAL EDITAR UNIDAD
-  #modalEditarUnidad.modal.fade(tabindex="-1" aria-hidden="true")
-    .modal-dialog
-      .modal-content
-        .modal-header
-          h5.modal-title Editar Unidad
-          button.btn-close(type="button", data-bs-dismiss="modal")
+    //- MODAL EDITAR UNIDAD
+    #modalEditarUnidad.modal.fade(tabindex="-1" aria-hidden="true")
+      .modal-dialog
+        .modal-content
+          .modal-header
+            h5.modal-title Editar Unidad
+            button.btn-close(type="button", data-bs-dismiss="modal")
 
-        .modal-body
-          form#formEditarUnidad
-            input(type="hidden" name="id")
+          .modal-body
+            form#formEditarUnidad
+              input(type="hidden" name="id")
 
-            .mb-3
-              label.form-label Nombre
-              input.form-control(name="nombre" required)
+              .mb-3
+                label.form-label Nombre
+                input.form-control(name="nombre" required)
 
-        .modal-footer
-          button.btn.btn-secondary(type="button" data-bs-dismiss="modal") Cancelar
-          button.btn.btn-primary(type="submit" form="formEditarUnidad") Guardar Cambios
+          .modal-footer
+            button.btn.btn-secondary(type="button" data-bs-dismiss="modal") Cancelar
+            button.btn.btn-primary(type="submit" form="formEditarUnidad") Guardar Cambios
 
-  //- MODAL PARA CONFIRMAR LA BAJA LOGICA
-  #modalBajaUnidad.modal.fade(tabindex="-1" aria-hidden="true")
-    .modal-dialog
-      .modal-content
-        .modal-header
-          h5.modal-title Dar de baja unidad
-          button.btn-close(type="button", data-bs-dismiss="modal")
+    //- MODAL PARA CONFIRMAR LA BAJA LOGICA
+    #modalBajaUnidad.modal.fade(tabindex="-1" aria-hidden="true")
+      .modal-dialog
+        .modal-content
+          .modal-header
+            h5.modal-title Dar de baja unidad
+            button.btn-close(type="button", data-bs-dismiss="modal")
 
-        .modal-body
-          p Seguro que deseas dar de baja a:
-            strong 
-              span#nombreUnidad
+          .modal-body
+            p Seguro que deseas dar de baja a:
+              strong 
+                span#nombreUnidad
 
-        .modal-footer
-          button.btn.btn-secondary(type="button" data-bs-dismiss="modal") Cancelar
-          button.btn.btn-danger#btnConfirmarBaja(type="button") Baja lógica
+          .modal-footer
+            button.btn.btn-secondary(type="button" data-bs-dismiss="modal") Cancelar
+            button.btn.btn-danger#btnConfirmarBaja(type="button") Baja lógica
 
   script.
     document.addEventListener("DOMContentLoaded", () => {
@@ -184,70 +188,74 @@ block content
       const modalEditar = document.getElementById("modalEditarUnidad");
       const formEditar = document.getElementById("formEditarUnidad");
 
-      modalEditar.addEventListener("show.bs.modal", (event) => {
-        const button = event.relatedTarget;
+      if (modalEditar && formEditar) {
+        modalEditar.addEventListener("show.bs.modal", (event) => {
+          const button = event.relatedTarget;
 
-        formEditar.id.value = button.dataset.id;
-        formEditar.nombre.value = button.dataset.nombre;
-      });
-
-      formEditar.addEventListener("submit", async (e) => {
-        e.preventDefault();
-
-        const data = Object.fromEntries(new FormData(formEditar));
-
-        const res = await fetch(`/unidades/editar/${data.id}`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(data)
+          formEditar.id.value = button.dataset.id;
+          formEditar.nombre.value = button.dataset.nombre;
         });
 
-        const json = await res.json();
-        if (json.ok) location.reload();
-        else alert(json.error);
-      });
+        formEditar.addEventListener("submit", async (e) => {
+          e.preventDefault();
+
+          const data = Object.fromEntries(new FormData(formEditar));
+
+          const res = await fetch(`/unidades/editar/${data.id}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data)
+          });
+
+          const json = await res.json();
+          if (json.ok) location.reload();
+          else alert(json.error);
+        });
+      }
 
       // -------- BAJA UNIDAD --------
       const modalBaja = document.getElementById("modalBajaUnidad");
       const btnBaja = document.getElementById("btnConfirmarBaja");
+      
+      if (modalBaja && btnBaja) {
+        modalBaja.addEventListener("show.bs.modal", (event) => {
+          const button = event.relatedTarget; // botón que abrió el modal
 
-      modalBaja.addEventListener("show.bs.modal", (event) => {
-        const button = event.relatedTarget; // botón que abrió el modal
+          const id = button.dataset.id;
+          const nombre = button.dataset.nombre;
 
-        const id = button.dataset.id;
-        const nombre = button.dataset.nombre;
+          // Guardamos el ID en el botón de confirmar para usarlo luego
+          btnBaja.dataset.id = id;
 
-        // Guardamos el ID en el botón de confirmar para usarlo luego
-        btnBaja.dataset.id = id;
-
-        // Mostrar el nombre del unidad en el texto del modal
-        const nombreSpan = modalBaja.querySelector("#nombreUnidad");
-        if (nombreSpan) {
-          nombreSpan.textContent = nombre;
-        }
-      });
-
-      btnBaja.addEventListener("click", async () => {
-        
-        const id = btnBaja.dataset.id;
-
-        const res = await fetch(`/unidades/baja/${id}`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" }
+          // Mostrar el nombre del unidad en el texto del modal
+          const nombreSpan = modalBaja.querySelector("#nombreUnidad");
+          if (nombreSpan) {
+            nombreSpan.textContent = nombre;
+          }
         });
 
-        const json = await res.json();
+        btnBaja.addEventListener("click", async () => {
+          
+          const id = btnBaja.dataset.id;
 
-        if (json.ok) {
-          location.reload(); // refrescar tabla
-        } else {
-          alert(json.error || "Error al dar de baja");
-        }
-      });
+          const res = await fetch(`/unidades/baja/${id}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" }
+          });
+
+          const json = await res.json();
+
+          if (json.ok) {
+            location.reload(); // refrescar tabla
+          } else {
+            alert(json.error || "Error al dar de baja");
+          }
+        });
+      }
 
       // -------- ALTA UNIDAD --------
       const botonesAlta = document.querySelectorAll(".btnAltaUnidad");
-
+      
       botonesAlta.forEach(btn => {
         btn.addEventListener("click", async () => {
 

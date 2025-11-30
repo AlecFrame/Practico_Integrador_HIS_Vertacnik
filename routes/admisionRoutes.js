@@ -8,16 +8,17 @@ import {
 const router = express.Router();
 
 router.use(requireLogin);
-router.use(allowRoles('admin'));
 
 router.get('/', listar);
 router.get('/detalle/:id', detalles);
-router.post('/crear', crear);
-router.post('/cambiarEstado/:id&:estado', cambiarEstado);
-
 router.get('/api/alas/:idUnidad', filtrarAlas);
 router.get("/api/habitaciones/:idAla", filtrarHabitaciones);
 router.get("/api/camas/:idUnidad&:idAla&:idHabitacion&:idPaciente", filtrarCamas);
 router.get("/api/pacientes", filtrarPacientes);
+
+router.use(allowRoles('admin', 'recepcion'));
+
+router.post('/crear', crear);
+router.post('/cambiarEstado/:id&:estado', cambiarEstado);
 
 export default router;

@@ -46,7 +46,20 @@ export const crear = async (req, res) => {
 };
 
 export const darDeBaja = async (req, res) => {
+  const user = req.session.user;
+
+  if (!user)
+    return res.json({ ok: false, error: "Error usuario no encontrado" });
+
   try {
+    const evaluacion = await EvaluacionEnfermeria.findByPk(req.params.id);
+
+    if (!evaluacion)
+      return res.json({ ok: false, error: "Error Evaluación no encontrada" });
+
+    if (evaluacion.enfermeroId != user.id)
+      return res.json({ ok: false, error: "No puedes editar la Evaluación de Enfermería de otro usuario" });
+
     await EvaluacionEnfermeria.update(
       { visible: 0 },
       { where: { idEvaluacionEnf: req.params.id } }
@@ -58,7 +71,20 @@ export const darDeBaja = async (req, res) => {
 };
 
 export const darDeAlta = async (req, res) => {
+  const user = req.session.user;
+
+  if (!user)
+    return res.json({ ok: false, error: "Error usuario no encontrado" });
+
   try {
+    const evaluacion = await EvaluacionEnfermeria.findByPk(req.params.id);
+
+    if (!evaluacion)
+      return res.json({ ok: false, error: "Error Evaluación no encontrada" });
+
+    if (evaluacion.enfermeroId != user.id)
+      return res.json({ ok: false, error: "No puedes editar la Evaluación de Enfermería de otro usuario" });
+
     await EvaluacionEnfermeria.update(
       { visible: 1 },
       { where: { idEvaluacionEnf: req.params.id } }

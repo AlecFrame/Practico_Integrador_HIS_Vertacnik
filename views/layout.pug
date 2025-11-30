@@ -26,6 +26,10 @@ html
           ul.nav.flex-column
             li.nav-item.mb-2
               a.nav-link(href="/users/dashboard") Inicio
+            
+            if user.rol === "admin"
+              li.nav-item.mb-2
+                a.nav-link(href="/usuarios") Usuarios
 
             li.nav-item.mb-2
               a.nav-link(href="/pacientes") Pacientes
@@ -36,10 +40,7 @@ html
             li.nav-item.mb-2
               a.nav-link(href="/altaHospitalarias") Altas Hospitalarias
 
-            if user.rol === "admin"
-              li.nav-item.mb-2
-                a.nav-link(href="/usuarios") Usuarios
-
+            if ["admin", "enfemeria", "medico"].includes(user.rol)
               li.nav-item.mb-2
                 a.nav-link(href="/unidades") Unidades
 

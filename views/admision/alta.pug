@@ -34,7 +34,7 @@ block content
         type="text"
         name="qMedico"
         style="width: 400px;"
-        placeholder="Buscar por nombre, apellido del médico"
+        placeholder="Buscar por nombre o apellido del médico"
         value=qMedico
       )
 
@@ -53,7 +53,8 @@ block content
         th Unidad
         th Médico responsable
         th Estado
-        th Acciones
+        if (user.rol != 'recepcion')
+          th Acciones
     tbody
       if altaHospitalarias.length > 0
         each a in altaHospitalarias
@@ -69,36 +70,39 @@ block content
                 span.bg-success.text-white(style="padding: 4px 10px; border-radius: 5px;") Activo
               else 
                 span.bg-secondary.text-white(style="padding: 4px 10px; border-radius: 5px;") Inactivo
-            td
-              button.btn.btn-sm.btn-outline-primary(
-                type="button"
-                data-bs-toggle="modal"
-                data-bs-target="#modalVer"
-                data-id=a.idAltaHospitalaria
-                data-idAdmision=a.Admision.idAdmision
-                data-fecha=a.fecha.toLocaleDateString("es-AR")
-                data-paciente=`${a.Admision.Paciente.nombre} ${a.Admision.Paciente.apellido}`
-                data-pacienteDni=`${a.Admision.Paciente.dni}`
-                data-cama=`${a.Admision.Cama.numero}`
-                data-habitacion=`${a.Admision.Cama.Habitacion.numero} (${a.Admision.Cama.Habitacion.tipo})`
-                data-ala=`${a.Admision.Cama.Habitacion.Ala.nombre}`
-                data-unidad=`${a.Admision.Cama.Habitacion.Ala.Unidad.nombre}`
-                data-medico=`${a.Usuario.nombre} ${a.Usuario.apellido}`
-                data-diagnosticoFinal=a.diagnosticoFinal
-                data-indicacionesAlta=a.indicacionesAlta
-                data-seguimientoFuturo=a.seguimientoFuturo
-              ) Ver
-              if a.visible == 1
-                button.btn.btn-sm.btn-danger.mx-1(
-                  type="button"
-                  data-bs-toggle="modal"
-                  data-bs-target="#modalBajaAltaHospitalaria"
-                  data-id=a.idAltaHospitalaria
-                ) Dar de baja
-              else
-                button.btnAltaAltaHospitalaria.btn.btn-sm.btn-primary.mx-1(
-                  data-id=a.idAltaHospitalaria
-                ) Dar de Alta
+            if (user.rol != 'recepcion')
+              td
+                if (['enfermeria', 'medico'].includes(user.rol))
+                  button.btn.btn-sm.btn-outline-primary(
+                    type="button"
+                    data-bs-toggle="modal"
+                    data-bs-target="#modalVer"
+                    data-id=a.idAltaHospitalaria
+                    data-idAdmision=a.Admision.idAdmision
+                    data-fecha=a.fecha.toLocaleDateString("es-AR")
+                    data-paciente=`${a.Admision.Paciente.nombre} ${a.Admision.Paciente.apellido}`
+                    data-pacienteDni=`${a.Admision.Paciente.dni}`
+                    data-cama=`${a.Admision.Cama.numero}`
+                    data-habitacion=`${a.Admision.Cama.Habitacion.numero} (${a.Admision.Cama.Habitacion.tipo})`
+                    data-ala=`${a.Admision.Cama.Habitacion.Ala.nombre}`
+                    data-unidad=`${a.Admision.Cama.Habitacion.Ala.Unidad.nombre}`
+                    data-medico=`${a.Usuario.nombre} ${a.Usuario.apellido}`
+                    data-diagnosticoFinal=a.diagnosticoFinal
+                    data-indicacionesAlta=a.indicacionesAlta
+                    data-seguimientoFuturo=a.seguimientoFuturo
+                  ) Ver
+                if (user.rol == 'admin')
+                  if a.visible == 1
+                    button.btn.btn-sm.btn-danger.mx-1(
+                      type="button"
+                      data-bs-toggle="modal"
+                      data-bs-target="#modalBajaAltaHospitalaria"
+                      data-id=a.idAltaHospitalaria
+                    ) Dar de baja
+                  else
+                    button.btnAltaAltaHospitalaria.btn.btn-sm.btn-primary.mx-1(
+                      data-id=a.idAltaHospitalaria
+                    ) Dar de Alta
       else
         tr
           td(colspan="9" class="text-center text-muted")
@@ -113,77 +117,79 @@ block content
               href=`/altaHospitalarias?estado=${estado}&qPaciente=${qPaciente}&qMedico=${qMedico}&page=${n}`
             ) #{n}
   
-  //- MODAL VER ALTA HOSPITALARIA
-  #modalVer.modal.fade(tabindex="-1" aria-hidden="true")
-    .modal-dialog.modal-xl
-      .modal-content
-        .modal-header
-          h5.modal-title Alta Hospitalaria de la admision #
-            span.ver-idAdmision
-          button.btn-close(type="button", data-bs-dismiss="modal")
+  if (['enfermeria', 'medico'].includes(user.rol))
+    //- MODAL VER ALTA HOSPITALARIA
+    #modalVer.modal.fade(tabindex="-1" aria-hidden="true")
+      .modal-dialog.modal-xl
+        .modal-content
+          .modal-header
+            h5.modal-title Alta Hospitalaria de la admision #
+              span.ver-idAdmision
+            button.btn-close(type="button", data-bs-dismiss="modal")
 
-        .modal-body
-          h6.mb-3.text-primary Información General
-          .row
-            .col-md-6.mb-2
-              strong Paciente: 
-              span.ver-paciente
-            .col-md-6.mb-2
-              strong DNI: 
-              span.ver-pacienteDni
-          .row
-            .col-md-6.mb-2
-              strong Fecha de Alta: 
-              span.ver-fecha
-            .col-md-6.mb-2
-              strong Médico: 
-              span.ver-medico
-          .row
-            .col-md-3.mb-2
-              strong Cama: 
-              span.ver-cama
-            .col-md-3.mb-2
-              strong Habitación: 
-              span.ver-habitacion
-            .col-md-3.mb-2
-              strong Ala: 
-              span.ver-ala
-            .col-md-3.mb-2
-              strong Unidad: 
-              span.ver-unidad
+          .modal-body
+            h6.mb-3.text-primary Información General
+            .row
+              .col-md-6.mb-2
+                strong Paciente: 
+                span.ver-paciente
+              .col-md-6.mb-2
+                strong DNI: 
+                span.ver-pacienteDni
+            .row
+              .col-md-6.mb-2
+                strong Fecha de Alta: 
+                span.ver-fecha
+              .col-md-6.mb-2
+                strong Médico: 
+                span.ver-medico
+            .row
+              .col-md-3.mb-2
+                strong Cama: 
+                span.ver-cama
+              .col-md-3.mb-2
+                strong Habitación: 
+                span.ver-habitacion
+              .col-md-3.mb-2
+                strong Ala: 
+                span.ver-ala
+              .col-md-3.mb-2
+                strong Unidad: 
+                span.ver-unidad
 
-          hr
+            hr
 
-          h6.mb-3.text-primary Información Clínica
+            h6.mb-3.text-primary Información Clínica
 
-          .mb-3
-            strong Diagnóstico Final: 
-            span.ver-diagnosticoFinal.mt-1
-          .mb-3
-            strong Indicaciones de Alta: 
-            span.ver-indicacionesAlta.mt-1
-          .mb-3
-            strong Seguimiento Futuro: 
-            span.ver-seguimientoFuturo.mt-1
+            .mb-3
+              strong Diagnóstico Final: 
+              span.ver-diagnosticoFinal.mt-1
+            .mb-3
+              strong Indicaciones de Alta: 
+              span.ver-indicacionesAlta.mt-1
+            .mb-3
+              strong Seguimiento Futuro: 
+              span.ver-seguimientoFuturo.mt-1
 
-        .modal-footer
-          button.btn.btn-secondary(type="button", data-bs-dismiss="modal") Cerrar
+          .modal-footer
+            button.btn.btn-secondary(type="button", data-bs-dismiss="modal") Cerrar
 
-  //- MODAL PARA CONFIRMAR LA BAJA LOGICA
-  #modalBajaAltaHospitalaria.modal.fade(tabindex="-1" aria-hidden="true")
-    .modal-dialog
-      .modal-content
-        .modal-header
-          h5.modal-title Dar de baja alta Hospitalaria
-          button.btn-close(type="button", data-bs-dismiss="modal")
+  if (user.rol == 'admin')
+    //- MODAL PARA CONFIRMAR LA BAJA LOGICA
+    #modalBajaAltaHospitalaria.modal.fade(tabindex="-1" aria-hidden="true")
+      .modal-dialog
+        .modal-content
+          .modal-header
+            h5.modal-title Dar de baja alta Hospitalaria
+            button.btn-close(type="button", data-bs-dismiss="modal")
 
-        .modal-body
-          p Seguro que deseas dar de baja al 
-            strong Alta Hospitalaria
+          .modal-body
+            p Seguro que deseas dar de baja al 
+              strong Alta Hospitalaria
 
-        .modal-footer
-          button.btn.btn-secondary(type="button" data-bs-dismiss="modal") Cancelar
-          button.btn.btn-danger#btnConfirmarBaja(type="button") Baja lógica
+          .modal-footer
+            button.btn.btn-secondary(type="button" data-bs-dismiss="modal") Cancelar
+            button.btn.btn-danger#btnConfirmarBaja(type="button") Baja lógica
 
   script.
     document.addEventListener("DOMContentLoaded", () => {
@@ -199,67 +205,71 @@ block content
       // -------- MODAL VER ---------
       const modalVer = document.getElementById("modalVer");
 
-      modalVer.addEventListener("show.bs.modal", (event) => {
-        const btn = event.relatedTarget;
+      if (modalVer) {
+        modalVer.addEventListener("show.bs.modal", (event) => {
+          const btn = event.relatedTarget;
 
-        // Obtener los campos
-        const idAdmision = btn.dataset.idadmision;
-        const fecha = btn.dataset.fecha;
-        const paciente = btn.dataset.paciente;
-        const pacienteDni = btn.dataset.pacientedni;
-        const cama = btn.dataset.cama;
-        const habitacion = btn.dataset.habitacion;
-        const ala = btn.dataset.ala;
-        const unidad = btn.dataset.unidad;
-        const medico = btn.dataset.medico;
-        const diagnosticoFinal = btn.dataset.diagnosticofinal;
-        const indicacionesAlta = btn.dataset.indicacionesalta;
-        const seguimientoFuturo = btn.dataset.seguimientofuturo;
+          // Obtener los campos
+          const idAdmision = btn.dataset.idadmision;
+          const fecha = btn.dataset.fecha;
+          const paciente = btn.dataset.paciente;
+          const pacienteDni = btn.dataset.pacientedni;
+          const cama = btn.dataset.cama;
+          const habitacion = btn.dataset.habitacion;
+          const ala = btn.dataset.ala;
+          const unidad = btn.dataset.unidad;
+          const medico = btn.dataset.medico;
+          const diagnosticoFinal = btn.dataset.diagnosticofinal;
+          const indicacionesAlta = btn.dataset.indicacionesalta;
+          const seguimientoFuturo = btn.dataset.seguimientofuturo;
 
-        // Volcar en el modal
-        modalVer.querySelector(".ver-idAdmision").textContent = idAdmision;
-        modalVer.querySelector(".ver-fecha").textContent = fecha;
-        modalVer.querySelector(".ver-paciente").textContent = paciente;
-        modalVer.querySelector(".ver-pacienteDni").textContent = pacienteDni;
-        modalVer.querySelector(".ver-cama").textContent = "Cama #"+cama;
-        modalVer.querySelector(".ver-habitacion").textContent = habitacion;
-        modalVer.querySelector(".ver-ala").textContent = ala;
-        modalVer.querySelector(".ver-unidad").textContent = unidad;
-        modalVer.querySelector(".ver-medico").textContent = medico;
-        modalVer.querySelector(".ver-diagnosticoFinal").textContent = diagnosticoFinal;
-        modalVer.querySelector(".ver-indicacionesAlta").textContent = indicacionesAlta;
-        modalVer.querySelector(".ver-seguimientoFuturo").textContent = seguimientoFuturo;
-      });
+          // Volcar en el modal
+          modalVer.querySelector(".ver-idAdmision").textContent = idAdmision;
+          modalVer.querySelector(".ver-fecha").textContent = fecha;
+          modalVer.querySelector(".ver-paciente").textContent = paciente;
+          modalVer.querySelector(".ver-pacienteDni").textContent = pacienteDni;
+          modalVer.querySelector(".ver-cama").textContent = "Cama #"+cama;
+          modalVer.querySelector(".ver-habitacion").textContent = habitacion;
+          modalVer.querySelector(".ver-ala").textContent = ala;
+          modalVer.querySelector(".ver-unidad").textContent = unidad;
+          modalVer.querySelector(".ver-medico").textContent = medico;
+          modalVer.querySelector(".ver-diagnosticoFinal").textContent = diagnosticoFinal;
+          modalVer.querySelector(".ver-indicacionesAlta").textContent = indicacionesAlta;
+          modalVer.querySelector(".ver-seguimientoFuturo").textContent = seguimientoFuturo;
+        });
+      }
 
       // -------- BAJA ALTA HOSPITALARIA --------
       const modalBaja = document.getElementById("modalBajaAltaHospitalaria");
       const btnBaja = document.getElementById("btnConfirmarBaja");
 
-      modalBaja.addEventListener("show.bs.modal", (event) => {
-        const button = event.relatedTarget;
+      if (modalBaja && btnBaja) {
+        modalBaja.addEventListener("show.bs.modal", (event) => {
+          const button = event.relatedTarget;
 
-        const id = button.dataset.id;
+          const id = button.dataset.id;
 
-        btnBaja.dataset.id = id;
-      });
-
-      btnBaja.addEventListener("click", async () => {
-        
-        const id = btnBaja.dataset.id;
-
-        const res = await fetch(`/altaHospitalarias/baja/${id}`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" }
+          btnBaja.dataset.id = id;
         });
 
-        const json = await res.json();
+        btnBaja.addEventListener("click", async () => {
+          
+          const id = btnBaja.dataset.id;
 
-        if (json.ok) {
-          location.reload(); // refrescar tabla
-        } else {
-          alert(json.error || "Error al dar de baja");
-        }
-      });
+          const res = await fetch(`/altaHospitalarias/baja/${id}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" }
+          });
+
+          const json = await res.json();
+
+          if (json.ok) {
+            location.reload(); // refrescar tabla
+          } else {
+            alert(json.error || "Error al dar de baja");
+          }
+        });
+      }
 
       // -------- ALTA ALTA HOSPITALARIA --------
       const botonesAlta = document.querySelectorAll(".btnAltaAltaHospitalaria");

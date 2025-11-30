@@ -39,12 +39,12 @@ block content
 
       button.btn.btn-outline-primary(type="submit") Buscar
 
-
-    button.btn.btn-success.mx-3.mt-3(
-      type="button"
-      data-bs-toggle="modal"
-      data-bs-target="#modalCrearAla"
-    ) + Nueva Ala
+    if (user.rol == 'admin')
+      button.btn.btn-success.mx-3.mt-3(
+        type="button"
+        data-bs-toggle="modal"
+        data-bs-target="#modalCrearAla"
+      ) + Nueva Ala
 
   table.table.table-striped.mt-3
     thead
@@ -53,7 +53,8 @@ block content
         th Nombre
         th Unidad
         th Estado
-        th Acciones
+        if (user.rol == 'admin')
+          th Acciones
     tbody
       if alas.length > 0
         each a in alas
@@ -66,27 +67,28 @@ block content
                 span.bg-success.text-white(style="padding: 4px 10px; border-radius: 5px;") Activo
               else 
                 span.bg-secondary.text-white(style="padding: 4px 10px; border-radius: 5px;") Inactivo
-            td
-              if a.visible == 1
-                button.btn.btn-sm.btn-warning.mx-1(
-                  type="button"
-                  data-bs-toggle="modal"
-                  data-bs-target="#modalEditarAla"
-                  data-id=a.idAla
-                  data-nombre=a.nombre
-                  data-unidad-id=a.Unidad.idUnidad
-                ) Editar
-                button.btn.btn-sm.btn-danger.mx-1(
-                  type="button"
-                  data-bs-toggle="modal"
-                  data-bs-target="#modalBajaAla"
-                  data-id=a.idAla
-                  data-nombre=`${a.nombre}`
-                ) Dar de baja
-              else
-                button.btnAltaAla.btn.btn-sm.btn-primary.mx-1(
-                  data-id=a.idAla
-                ) Dar de Alta
+            if (user.rol == 'admin')
+              td
+                if a.visible == 1
+                  button.btn.btn-sm.btn-warning.mx-1(
+                    type="button"
+                    data-bs-toggle="modal"
+                    data-bs-target="#modalEditarAla"
+                    data-id=a.idAla
+                    data-nombre=a.nombre
+                    data-unidad-id=a.Unidad.idUnidad
+                  ) Editar
+                  button.btn.btn-sm.btn-danger.mx-1(
+                    type="button"
+                    data-bs-toggle="modal"
+                    data-bs-target="#modalBajaAla"
+                    data-id=a.idAla
+                    data-nombre=`${a.nombre}`
+                  ) Dar de baja
+                else
+                  button.btnAltaAla.btn.btn-sm.btn-primary.mx-1(
+                    data-id=a.idAla
+                  ) Dar de Alta
       else
         tr
           td(colspan="5" class="text-center text-muted")
@@ -101,72 +103,73 @@ block content
               href=`/alas?estado=${estado}&buscar=${buscar}&page=${n}`
             ) #{n}
   
-  //- MODAL CREAR ALA
-  #modalCrearAla.modal.fade(tabindex="-1" aria-hidden="true")
-    .modal-dialog
-      .modal-content
-        .modal-header
-          h5.modal-title Nueva Ala
-          button.btn-close(type="button", data-bs-dismiss="modal")
+  if (user.rol == 'admin')
+    //- MODAL CREAR ALA
+    #modalCrearAla.modal.fade(tabindex="-1" aria-hidden="true")
+      .modal-dialog
+        .modal-content
+          .modal-header
+            h5.modal-title Nueva Ala
+            button.btn-close(type="button", data-bs-dismiss="modal")
 
-        .modal-body
-          form#formCrearAla
-            .mb-3
-              label.form-label Unidad
-              select.form-control(name="unidadId")
-                each u in unidades
-                  option(value=u.idUnidad) #{u.nombre}
+          .modal-body
+            form#formCrearAla
+              .mb-3
+                label.form-label Unidad
+                select.form-control(name="unidadId")
+                  each u in unidades
+                    option(value=u.idUnidad) #{u.nombre}
 
-            .mb-3
-              label.form-label Nombre
-              input.form-control(name="nombre" required)
+              .mb-3
+                label.form-label Nombre
+                input.form-control(name="nombre" required)
 
-        .modal-footer
-          button.btn.btn-secondary(type="button" data-bs-dismiss="modal") Cancelar
-          button.btn.btn-primary(type="submit" form="formCrearAla") Guardar
+          .modal-footer
+            button.btn.btn-secondary(type="button" data-bs-dismiss="modal") Cancelar
+            button.btn.btn-primary(type="submit" form="formCrearAla") Guardar
 
-  //- MODAL EDITAR ALA
-  #modalEditarAla.modal.fade(tabindex="-1" aria-hidden="true")
-    .modal-dialog
-      .modal-content
-        .modal-header
-          h5.modal-title Editar Ala
-          button.btn-close(type="button", data-bs-dismiss="modal")
+    //- MODAL EDITAR ALA
+    #modalEditarAla.modal.fade(tabindex="-1" aria-hidden="true")
+      .modal-dialog
+        .modal-content
+          .modal-header
+            h5.modal-title Editar Ala
+            button.btn-close(type="button", data-bs-dismiss="modal")
 
-        .modal-body
-          form#formEditarAla
-            input(type="hidden" name="id")
+          .modal-body
+            form#formEditarAla
+              input(type="hidden" name="id")
 
-            .mb-3
-              label.form-label Unidad
-              select.form-control(name="unidadId")
-                each u in unidades
-                  option( value=u.idUnidad ) #{u.nombre}
+              .mb-3
+                label.form-label Unidad
+                select.form-control(name="unidadId")
+                  each u in unidades
+                    option( value=u.idUnidad ) #{u.nombre}
 
-            .mb-3
-              label.form-label Nombre
-              input.form-control(name="nombre" required)
+              .mb-3
+                label.form-label Nombre
+                input.form-control(name="nombre" required)
 
-        .modal-footer
-          button.btn.btn-secondary(type="button" data-bs-dismiss="modal") Cancelar
-          button.btn.btn-primary(type="submit" form="formEditarAla") Guardar Cambios
+          .modal-footer
+            button.btn.btn-secondary(type="button" data-bs-dismiss="modal") Cancelar
+            button.btn.btn-primary(type="submit" form="formEditarAla") Guardar Cambios
 
-  //- MODAL PARA CONFIRMAR LA BAJA LOGICA
-  #modalBajaAla.modal.fade(tabindex="-1" aria-hidden="true")
-    .modal-dialog
-      .modal-content
-        .modal-header
-          h5.modal-title Dar de baja ala
-          button.btn-close(type="button", data-bs-dismiss="modal")
+    //- MODAL PARA CONFIRMAR LA BAJA LOGICA
+    #modalBajaAla.modal.fade(tabindex="-1" aria-hidden="true")
+      .modal-dialog
+        .modal-content
+          .modal-header
+            h5.modal-title Dar de baja ala
+            button.btn-close(type="button", data-bs-dismiss="modal")
 
-        .modal-body
-          p Seguro que deseas dar de baja a:
-            strong 
-              span#nombreAla
+          .modal-body
+            p Seguro que deseas dar de baja a:
+              strong 
+                span#nombreAla
 
-        .modal-footer
-          button.btn.btn-secondary(type="button" data-bs-dismiss="modal") Cancelar
-          button.btn.btn-danger#btnConfirmarBaja(type="button") Baja lógica
+          .modal-footer
+            button.btn.btn-secondary(type="button" data-bs-dismiss="modal") Cancelar
+            button.btn.btn-danger#btnConfirmarBaja(type="button") Baja lógica
 
   script.
     document.addEventListener("DOMContentLoaded", () => {
@@ -203,69 +206,71 @@ block content
       const modalEditar = document.getElementById("modalEditarAla");
       const formEditar = document.getElementById("formEditarAla");
 
-      modalEditar.addEventListener("show.bs.modal", (event) => {
-        const button = event.relatedTarget;
+      if (modalEditar && formEditar) {
+        modalEditar.addEventListener("show.bs.modal", (event) => {
+          const button = event.relatedTarget;
 
-        formEditar.id.value = button.dataset.id;
-        formEditar.nombre.value = button.dataset.nombre;
+          formEditar.id.value = button.dataset.id;
+          formEditar.nombre.value = button.dataset.nombre;
 
-        const unidadId = button.dataset.unidadId;
-        formEditar.unidadId.value = unidadId;
-      });
-
-      formEditar.addEventListener("submit", async (e) => {
-        e.preventDefault();
-
-        const data = Object.fromEntries(new FormData(formEditar));
-
-        const res = await fetch(`/alas/editar/${data.id}`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(data)
+          const unidadId = button.dataset.unidadId;
+          formEditar.unidadId.value = unidadId;
         });
 
-        const json = await res.json();
-        if (json.ok) location.reload();
-        else alert(json.error);
-      });
+        formEditar.addEventListener("submit", async (e) => {
+          e.preventDefault();
+
+          const data = Object.fromEntries(new FormData(formEditar));
+
+          const res = await fetch(`/alas/editar/${data.id}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data)
+          });
+
+          const json = await res.json();
+          if (json.ok) location.reload();
+          else alert(json.error);
+        });
+      }
 
       // -------- BAJA ALA --------
       const modalBaja = document.getElementById("modalBajaAla");
       const btnBaja = document.getElementById("btnConfirmarBaja");
 
-      modalBaja.addEventListener("show.bs.modal", (event) => {
-        const button = event.relatedTarget; // botón que abrió el modal
+      if (modalBaja && btnBaja) {
+        modalBaja.addEventListener("show.bs.modal", (event) => {
+          const button = event.relatedTarget; // botón que abrió el modal
 
-        const id = button.dataset.id;
-        const nombre = button.dataset.nombre;
+          const id = button.dataset.id;
+          const nombre = button.dataset.nombre;
 
-        // Guardamos el ID en el botón de confirmar para usarlo luego
-        btnBaja.dataset.id = id;
+          btnBaja.dataset.id = id;
 
-        // Mostrar el nombre del ala en el texto del modal
-        const nombreSpan = modalBaja.querySelector("#nombreAla");
-        if (nombreSpan) {
-          nombreSpan.textContent = nombre;
-        }
-      });
-
-      btnBaja.addEventListener("click", async () => {
-        
-        const id = btnBaja.dataset.id;
-
-        const res = await fetch(`/alas/baja/${id}`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" }
+          const nombreSpan = modalBaja.querySelector("#nombreAla");
+          if (nombreSpan) {
+            nombreSpan.textContent = nombre;
+          }
         });
 
-        const json = await res.json();
+        btnBaja.addEventListener("click", async () => {
+          
+          const id = btnBaja.dataset.id;
 
-        if (json.ok) {
-          location.reload(); // refrescar tabla
-        } else {
-          alert(json.error || "Error al dar de baja");
-        }
-      });
+          const res = await fetch(`/alas/baja/${id}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" }
+          });
+
+          const json = await res.json();
+
+          if (json.ok) {
+            location.reload(); // refrescar tabla
+          } else {
+            alert(json.error || "Error al dar de baja");
+          }
+        });
+      }
 
       // -------- ALTA ALA --------
       const botonesAlta = document.querySelectorAll(".btnAltaAla");

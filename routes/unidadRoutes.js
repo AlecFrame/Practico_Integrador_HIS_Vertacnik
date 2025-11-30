@@ -7,9 +7,12 @@ import {
 const router = express.Router();
 
 router.use(requireLogin);
-router.use(allowRoles('admin'));
+router.use(allowRoles('admin', 'enfermeria', 'medico'));
 
 router.get('/', listar);
+
+router.use(allowRoles('admin'));
+
 router.post('/crear', crear);
 router.post('/editar/:id', actualizar);
 router.post('/baja/:id', darDeBaja);

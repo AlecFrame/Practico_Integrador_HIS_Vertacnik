@@ -39,11 +39,12 @@ block content
 
       button.btn.btn-outline-primary(type="submit") Buscar
 
-    button#btnAgregarAdmision.btn.btn-success.mx-3.mt-3(
-      type="button"
-      data-bs-toggle="modal"
-      data-bs-target="#modalCrearAdmision"
-    ) + Nuevo Admision
+    if (['admin', 'recepcion'].includes(user.rol))
+      button#btnAgregarAdmision.btn.btn-success.mx-3.mt-3(
+        type="button"
+        data-bs-toggle="modal"
+        data-bs-target="#modalCrearAdmision"
+      ) + Nuevo Admision
 
   table.table.table-striped.mt-3
     thead
@@ -84,14 +85,15 @@ block content
               a.btnVerDetalle.btn.btn-sm.btn-info.mx-1(
                 href=`/admisiones/detalle/${a.idAdmision}`
               ) Ver Detalles
-              if a.estado == 'activa'
-                button.btn.btn-sm.btn-danger.mx-1(
-                  type="button"
-                  data-bs-toggle="modal"
-                  data-bs-target="#modalBajaAdmision"
-                  data-id=a.idAdmision
-                  data-nombre=`${a.idAdmision}`
-                ) Cancelar
+              if (['admin', 'recepcion'].includes(user.rol))
+                if a.estado == 'activa'
+                  button.btn.btn-sm.btn-danger.mx-1(
+                    type="button"
+                    data-bs-toggle="modal"
+                    data-bs-target="#modalBajaAdmision"
+                    data-id=a.idAdmision
+                    data-nombre=`${a.idAdmision}`
+                  ) Cancelar
       else
         tr
           td(colspan="9" class="text-center text-muted")
@@ -106,75 +108,76 @@ block content
               href=`/admisiones?estado=${estado}&buscar=${buscar}&page=${n}`
             ) #{n}
   
-  //- MODAL CREAR ADMISION
-  #modalCrearAdmision.modal.fade(tabindex="-1" aria-hidden="true")
-    .modal-dialog.modal-lg
-      .modal-content
-        .modal-header
-          h5.modal-title Nuevo Admision
-          button.btn-close(type="button", data-bs-dismiss="modal")
+  if (['admin', 'recepcion'].includes(user.rol))
+    //- MODAL CREAR ADMISION
+    #modalCrearAdmision.modal.fade(tabindex="-1" aria-hidden="true")
+      .modal-dialog.modal-lg
+        .modal-content
+          .modal-header
+            h5.modal-title Nuevo Admision
+            button.btn-close(type="button", data-bs-dismiss="modal")
 
-        .modal-body
-          form#formCrearAdmision
-            .mb-3
-              label.form-label Paciente
-              select#selectCrearPaciente.form-control(name="pacienteId")
-            
-            .mb-3
-              label.form-label Tipo de ingreso
-              select.form-control(name="tipoIngreso")
-                option(value='cita') Cita
-                option(value='derivacion') Derivación
-                option(value='emergencia') Emergencia
+          .modal-body
+            form#formCrearAdmision
+              .mb-3
+                label.form-label Paciente
+                select#selectCrearPaciente.form-control(name="pacienteId")
+              
+              .mb-3
+                label.form-label Tipo de ingreso
+                select.form-control(name="tipoIngreso")
+                  option(value='cita') Cita
+                  option(value='derivacion') Derivación
+                  option(value='emergencia') Emergencia
 
-            .mb-3
-              label.form-label Derivado por
-              input.form-control(name="derivadoPor")
+              .mb-3
+                label.form-label Derivado por
+                input.form-control(name="derivadoPor")
 
-            .mb-3
-              label.form-label Motivo de internación
-              input.form-control(name="motivoInternacion")
+              .mb-3
+                label.form-label Motivo de internación
+                input.form-control(name="motivoInternacion")
 
-            hr
+              hr
 
-            Label.form-label Filtros para Buscar la cama
-            .mb-3.d-flex.justify-content-between.gap-2
-              select.form-control(name="unidadId")
-                option(value=0) Cualquier Unidad
-                each u in unidades
-                  option(value=u.idUnidad) #{u.nombre}
-            
-              select.form-control(name="alaId")
-                option(value=0) Cualquier Ala
-            
-              select.form-control(name="habitacionId" disabled)
-                option(value=0) Cualquier Habitacion
+              Label.form-label Filtros para Buscar la cama
+              .mb-3.d-flex.justify-content-between.gap-2
+                select.form-control(name="unidadId")
+                  option(value=0) Cualquier Unidad
+                  each u in unidades
+                    option(value=u.idUnidad) #{u.nombre}
+              
+                select.form-control(name="alaId")
+                  option(value=0) Cualquier Ala
+              
+                select.form-control(name="habitacionId" disabled)
+                  option(value=0) Cualquier Habitacion
 
-            .mb-3
-              label.form-label Cama
-              select.form-control(name="camaId" disabled)
-                option(value=0) Falta asignar Cama
+              .mb-3
+                label.form-label Cama
+                select.form-control(name="camaId" disabled)
+                  option(value=0) Falta asignar Cama
 
-        .modal-footer
-          button.btn.btn-secondary(type="button" data-bs-dismiss="modal") Cancelar
-          button.btn.btn-primary(type="submit" form="formCrearAdmision") Guardar
+          .modal-footer
+            button.btn.btn-secondary(type="button" data-bs-dismiss="modal") Cancelar
+            button.btn.btn-primary(type="submit" form="formCrearAdmision") Guardar
 
-  //- MODAL PARA CONFIRMAR LA BAJA LOGICA
-  #modalBajaAdmision.modal.fade(tabindex="-1" aria-hidden="true")
-    .modal-dialog
-      .modal-content
-        .modal-header
-          h5.modal-title Cancelar Admision
-          button.btn-close(type="button", data-bs-dismiss="modal")
+    //- MODAL PARA CONFIRMAR LA BAJA LOGICA
+    #modalBajaAdmision.modal.fade(tabindex="-1" aria-hidden="true")
+      .modal-dialog
+        .modal-content
+          .modal-header
+            h5.modal-title Cancelar Admision
+            button.btn-close(type="button", data-bs-dismiss="modal")
 
-        .modal-body
-          p Seguro que deseas cancelar la Admision: 
-            strong 
-              span#nombreAdmision
+          .modal-body
+            p Seguro que deseas cancelar la Admision: 
+              strong 
+                span#nombreAdmision
 
-        .modal-footer
-          button.btn.btn-secondary(type="button" data-bs-dismiss="modal") Cancelar
-          button.btn.btn-danger#btnConfirmarBaja(type="button") Confirmar
+          .modal-footer
+            button.btn.btn-secondary(type="button" data-bs-dismiss="modal") Cancelar
+            button.btn.btn-danger#btnConfirmarBaja(type="button") Confirmar
 
   script.
     document.addEventListener("DOMContentLoaded", () => {
@@ -191,54 +194,94 @@ block content
       const formCrear = document.getElementById("formCrearAdmision");
       const modalCrear = document.getElementById("modalCrearAdmision");
       const btnAgregarAdmision = document.getElementById("btnAgregarAdmision");
+      
+      if (formCrear, modalCrear, btnAgregarAdmision) {
+        $(document).ready(function() {
+            $('#selectCrearPaciente').select2({
+              theme: "bootstrap5",
+              language: "es",
+              dropdownParent: modalCrear,
+              placeholder: 'Buscar paciente...',
+              minimumInputLength: 2,
+              ajax: {
+                url: 'admisiones/api/pacientes',
+                dataType: 'json',
+                delay: 300,
+                data: params => ({
+                  q: params.term
+                }),
+                processResults: data => ({
+                  results: data.map(p => ({
+                    id: p.idPaciente,
+                    text: `${p.nombre} ${p.apellido} - DNI: ${p.dni}`
+                  }))
+                })
+              }
+            });
 
-      $(document).ready(function() {
-          $('#selectCrearPaciente').select2({
-            theme: "bootstrap5",
-            language: "es",
-            dropdownParent: modalCrear,
-            placeholder: 'Buscar paciente...',
-            minimumInputLength: 2,
-            ajax: {
-              url: 'admisiones/api/pacientes',
-              dataType: 'json',
-              delay: 300,
-              data: params => ({
-                q: params.term
-              }),
-              processResults: data => ({
-                results: data.map(p => ({
-                  id: p.idPaciente,
-                  text: `${p.nombre} ${p.apellido} - DNI: ${p.dni}`
-                }))
-              })
-            }
-          });
+            $('#selectCrearPaciente').on('select2:select', function (e) {
+                formCrearCargarCamas();
+            });
+        });
 
-          $('#selectCrearPaciente').on('select2:select', function (e) {
-              formCrearCargarCamas();
-          });
-      });
+        btnAgregarAdmision.addEventListener("click", async (event) => {
+          const button = event.relatedTarget;
 
-      btnAgregarAdmision.addEventListener("click", async (event) => {
-        const button = event.relatedTarget;
+          if (formCrear.tipoIngreso.value=='derivacion') {
+            formCrear.derivadoPor.disabled = false;
+            formCrear.derivadoPor.required = true;
+          }else {
+            formCrear.derivadoPor.value = "";
+            formCrear.derivadoPor.required = false;
+            formCrear.derivadoPor.disabled = true;
+          }
 
-        if (formCrear.tipoIngreso.value=='derivacion') {
-          formCrear.derivadoPor.disabled = false;
-          formCrear.derivadoPor.required = true;
-        }else {
-          formCrear.derivadoPor.value = "";
-          formCrear.derivadoPor.required = false;
-          formCrear.derivadoPor.disabled = true;
-        }
+          if (formCrear.unidadId.value==0) {
+            formCrear.alaId.innerHTML = `<option value="0">Cualquier Ala</option>`;
+            formCrear.alaId.disabled = true;
+            formCrear.habitacionId.innerHTML = `<option value="0">Cualquier Habitación</option>`;
+            formCrear.habitacionId.disabled = true;
+            formCrearCargarCamas();
+          }else {
+            const res = await fetch(`/admisiones/api/alas/${formCrear.unidadId.value}`);
+            const resJson = await res.json();
+            const alas = resJson.alas;
 
-        if (formCrear.unidadId.value==0) {
-          formCrear.alaId.innerHTML = `<option value="0">Cualquier Ala</option>`;
-          formCrear.alaId.disabled = true;
-          formCrear.habitacionId.innerHTML = `<option value="0">Cualquier Habitación</option>`;
-          formCrear.habitacionId.disabled = true;
-          formCrearCargarCamas();
-        }else {
+            formCrear.alaId.innerHTML = `<option value="0">Cualquier Ala</option>`;
+            formCrear.habitacionId.innerHTML = `<option value="0">Cualquier Habitación</option>`;
+            formCrear.habitacionId.disabled = true;
+
+            alas.forEach(a => {
+              formCrear.alaId.innerHTML += `<option value="${a.idAla}">${a.nombre}</option>`;
+            });
+
+            formCrear.alaId.disabled = false;
+            formCrearCargarCamas();
+          }
+        });
+
+        formCrear.tipoIngreso.addEventListener("change", () => {
+          if (formCrear.tipoIngreso.value=='derivacion') {
+            formCrear.derivadoPor.disabled = false;
+            formCrear.derivadoPor.required = true;
+          }else {
+            formCrear.derivadoPor.value = "";
+            formCrear.derivadoPor.required = false;
+            formCrear.derivadoPor.disabled = true;
+          }
+        });
+
+        formCrear.unidadId.addEventListener("change", async () => {
+          if (formCrear.unidadId.value==0) {
+            formCrear.alaId.innerHTML = `<option value="0">Cualquier Ala</option>`;
+            formCrear.alaId.disabled = true;
+            formCrear.habitacionId.innerHTML = `<option value="0">Cualquier Habitación</option>`;
+            formCrear.habitacionId.disabled = true;
+            formCrearCargarCamas();
+
+            return;
+          }
+
           const res = await fetch(`/admisiones/api/alas/${formCrear.unidadId.value}`);
           const resJson = await res.json();
           const alas = resJson.alas;
@@ -246,96 +289,56 @@ block content
           formCrear.alaId.innerHTML = `<option value="0">Cualquier Ala</option>`;
           formCrear.habitacionId.innerHTML = `<option value="0">Cualquier Habitación</option>`;
           formCrear.habitacionId.disabled = true;
-
+          
           alas.forEach(a => {
             formCrear.alaId.innerHTML += `<option value="${a.idAla}">${a.nombre}</option>`;
           });
 
           formCrear.alaId.disabled = false;
           formCrearCargarCamas();
-        }
-      });
+        });
 
-      formCrear.tipoIngreso.addEventListener("change", () => {
-        if (formCrear.tipoIngreso.value=='derivacion') {
-          formCrear.derivadoPor.disabled = false;
-          formCrear.derivadoPor.required = true;
-        }else {
-          formCrear.derivadoPor.value = "";
-          formCrear.derivadoPor.required = false;
-          formCrear.derivadoPor.disabled = true;
-        }
-      });
+        formCrear.alaId.addEventListener("change", async () => {
+          if (formCrear.alaId.value==0) {
+            formCrear.habitacionId.innerHTML = `<option value="0">Cualquier Habitación</option>`;
+            formCrear.habitacionId.disabled = true;
+            formCrearCargarCamas();
 
-      formCrear.unidadId.addEventListener("change", async () => {
-        if (formCrear.unidadId.value==0) {
-          formCrear.alaId.innerHTML = `<option value="0">Cualquier Ala</option>`;
-          formCrear.alaId.disabled = true;
+            return;
+          }
+
+          const res = await fetch(`/admisiones/api/habitaciones/${formCrear.alaId.value}`);
+          const resJson = await res.json();
+          const habitaciones = resJson.habitaciones;
+
           formCrear.habitacionId.innerHTML = `<option value="0">Cualquier Habitación</option>`;
-          formCrear.habitacionId.disabled = true;
-          formCrearCargarCamas();
+          
+          habitaciones.forEach(h => {
+            formCrear.habitacionId.innerHTML += `<option value="${h.idHabitacion}">${h.numero} - ${h.tipo}</option>`;
+          });
 
-          return;
+          formCrear.habitacionId.disabled = false;
+          formCrearCargarCamas();
+        });
+
+        formCrear.habitacionId.addEventListener("change", async () => {
+          formCrearCargarCamas();
+        });
+
+        async function formCrearCargarCamas() {
+          const res = await fetch(`/admisiones/api/camas/${formCrear.unidadId.value}&${formCrear.alaId.value}&${formCrear.habitacionId.value}&${formCrear.pacienteId.value || 0}`);
+          const resJson = await res.json();
+          const camas = resJson.camas;
+
+          formCrear.camaId.innerHTML = `<option value="0">Falta asignar Cama</option>`;
+          
+          camas.forEach(c => {
+            formCrear.camaId.innerHTML += `<option value="${c.idCama}">Cama #${c.numero} - Habitación #${c.Habitacion.numero} (${c.Habitacion.tipo}) - ${c.Habitacion.Ala.nombre} - ${c.Habitacion.Ala.Unidad.nombre} </option>`;
+          });
+
+          formCrear.camaId.disabled = false;
         }
 
-        const res = await fetch(`/admisiones/api/alas/${formCrear.unidadId.value}`);
-        const resJson = await res.json();
-        const alas = resJson.alas;
-
-        formCrear.alaId.innerHTML = `<option value="0">Cualquier Ala</option>`;
-        formCrear.habitacionId.innerHTML = `<option value="0">Cualquier Habitación</option>`;
-        formCrear.habitacionId.disabled = true;
-        
-        alas.forEach(a => {
-          formCrear.alaId.innerHTML += `<option value="${a.idAla}">${a.nombre}</option>`;
-        });
-
-        formCrear.alaId.disabled = false;
-        formCrearCargarCamas();
-      });
-
-      formCrear.alaId.addEventListener("change", async () => {
-        if (formCrear.alaId.value==0) {
-          formCrear.habitacionId.innerHTML = `<option value="0">Cualquier Habitación</option>`;
-          formCrear.habitacionId.disabled = true;
-          formCrearCargarCamas();
-
-          return;
-        }
-
-        const res = await fetch(`/admisiones/api/habitaciones/${formCrear.alaId.value}`);
-        const resJson = await res.json();
-        const habitaciones = resJson.habitaciones;
-
-        formCrear.habitacionId.innerHTML = `<option value="0">Cualquier Habitación</option>`;
-        
-        habitaciones.forEach(h => {
-          formCrear.habitacionId.innerHTML += `<option value="${h.idHabitacion}">${h.numero} - ${h.tipo}</option>`;
-        });
-
-        formCrear.habitacionId.disabled = false;
-        formCrearCargarCamas();
-      });
-
-      formCrear.habitacionId.addEventListener("change", async () => {
-        formCrearCargarCamas();
-      });
-
-      async function formCrearCargarCamas() {
-        const res = await fetch(`/admisiones/api/camas/${formCrear.unidadId.value}&${formCrear.alaId.value}&${formCrear.habitacionId.value}&${formCrear.pacienteId.value || 0}`);
-        const resJson = await res.json();
-        const camas = resJson.camas;
-
-        formCrear.camaId.innerHTML = `<option value="0">Falta asignar Cama</option>`;
-        
-        camas.forEach(c => {
-          formCrear.camaId.innerHTML += `<option value="${c.idCama}">Cama #${c.numero} - Habitación #${c.Habitacion.numero} (${c.Habitacion.tipo}) - ${c.Habitacion.Ala.nombre} - ${c.Habitacion.Ala.Unidad.nombre} </option>`;
-        });
-
-        formCrear.camaId.disabled = false;
-      }
-
-      if (formCrear) {
         formCrear.addEventListener("submit", async (e) => {
           e.preventDefault();
           const data = Object.fromEntries(new FormData(formCrear));
@@ -355,38 +358,40 @@ block content
       // -------- CANCELAR ADMISION --------
       const modalBaja = document.getElementById("modalBajaAdmision");
       const btnBaja = document.getElementById("btnConfirmarBaja");
+      
+      if (modalBaja && btnBaja) {
+        modalBaja.addEventListener("show.bs.modal", (event) => {
+          const button = event.relatedTarget; // botón que abrió el modal
 
-      modalBaja.addEventListener("show.bs.modal", (event) => {
-        const button = event.relatedTarget; // botón que abrió el modal
+          const id = button.dataset.id;
+          const nombre = button.dataset.nombre;
 
-        const id = button.dataset.id;
-        const nombre = button.dataset.nombre;
+          // Guardamos el ID en el botón de confirmar para usarlo luego
+          btnBaja.dataset.id = id;
 
-        // Guardamos el ID en el botón de confirmar para usarlo luego
-        btnBaja.dataset.id = id;
-
-        // Mostrar el nombre del admision en el texto del modal
-        const nombreSpan = modalBaja.querySelector("#nombreAdmision");
-        if (nombreSpan) {
-          nombreSpan.textContent = nombre;
-        }
-      });
-
-      btnBaja.addEventListener("click", async () => {
-        const id = btnBaja.dataset.id;
-        const estado = 'cancelada';
-
-        const res = await fetch(`/admisiones/cambiarEstado/${id}&${estado}`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" }
+          // Mostrar el nombre del admision en el texto del modal
+          const nombreSpan = modalBaja.querySelector("#nombreAdmision");
+          if (nombreSpan) {
+            nombreSpan.textContent = nombre;
+          }
         });
 
-        const json = await res.json();
+        btnBaja.addEventListener("click", async () => {
+          const id = btnBaja.dataset.id;
+          const estado = 'cancelada';
 
-        if (json.ok) {
-          location.reload(); // refrescar tabla
-        } else {
-          alert(json.error || "Error al cancelar");
-        }
-      });
+          const res = await fetch(`/admisiones/cambiarEstado/${id}&${estado}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" }
+          });
+
+          const json = await res.json();
+
+          if (json.ok) {
+            location.reload(); // refrescar tabla
+          } else {
+            alert(json.error || "Error al cancelar");
+          }
+        });
+      }
     });
