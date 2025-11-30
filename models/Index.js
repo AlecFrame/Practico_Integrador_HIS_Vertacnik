@@ -49,6 +49,8 @@ EvaluacionMedica.belongsTo(Usuario, { foreignKey: 'medicoId' });
 Admision.hasMany(AltaHospitalaria, { foreignKey: 'admisionId' });
 AltaHospitalaria.belongsTo(Admision, { foreignKey: 'admisionId' });
 
+Usuario.hasMany(AltaHospitalaria, { foreignKey: 'medicoId' });
+AltaHospitalaria.belongsTo(Usuario, { foreignKey: 'medicoId' });
 
 
 // Exportar
@@ -62,5 +64,6 @@ export {
     Habitacion,
     Cama,
     EvaluacionEnfermeria,
-    EvaluacionMedica
+    EvaluacionMedica,
+    AltaHospitalaria
 };

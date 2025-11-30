@@ -54,7 +54,7 @@ block content
         th Ala y Unidad
         th Fecha de ingreso
         th Tipo de ingreso
-        th Morivo de internación
+        th Motivo de internación
         th Estado
         th Acciones
     tbody
@@ -71,7 +71,8 @@ block content
                 span derivado por #{a.derivadoPor}
               else
                 span #{a.tipoIngreso}
-            td #{a.motivoInternacion}
+            - const preview = a.motivoInternacion ? a.motivoInternacion.slice(0, 30) : '–'
+            td #{preview}...
             td 
               if a.estado=='activa'
                 span.bg-success.text-white(style="padding: 4px 10px; border-radius: 5px;") #{a.estado}

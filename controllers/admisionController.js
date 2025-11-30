@@ -1,4 +1,4 @@
-import { Admision, Usuario, Paciente, Unidad, Ala, Habitacion, Cama, EvaluacionEnfermeria, EvaluacionMedica } from '../models/index.js';
+import { Admision, Usuario, Paciente, Unidad, Ala, Habitacion, Cama, EvaluacionEnfermeria, EvaluacionMedica, AltaHospitalaria } from '../models/index.js';
 import { Op } from "sequelize";
 
 export const listar = async (req, res) => {
@@ -138,7 +138,19 @@ export const cambiarEstado = async (req, res) => {
       { estado: nuevoEstado },
       { where: { idAdmision: req.params.id } }
     );
-
+    
+    if (nuevoEstado=='activa') {
+      await Cama.update(
+        { estado: 'ocupada' },
+        { where: { idCama: admision.camaId } }
+      )
+    }
+    if (nuevoEstado=='finalizada') {
+      await Cama.update(
+        { estado: 'sucia' },
+        { where: { idCama: admision.camaId } }
+      )
+    }
     if (nuevoEstado=='cancelada') {
       await Cama.update(
         { estado: 'libre' },
@@ -341,10 +353,20 @@ export const detalles = async (req, res) => {
 
   const totalPagesMed = Math.ceil(countMed / pageSizeMed);
 
+  const altas = await AltaHospitalaria.findAll({
+    where: { admisionId: req.params.id },
+    limit: 1,
+    include: [{
+      model: Usuario,
+      as: 'Usuario'
+    }]
+  })
+
   res.render("admision/detalle", {
     admision,
     evaluacionesEnf: rowsEnf || [],
     evaluacionesMed: rowsMed || [],
+    altaHospitalaria: (altas.length!=0)? altas[0]: null,
     estadoEnf,
     estadoMed,
     pageEnf,
