@@ -112,6 +112,79 @@ export const crear = async (req, res) => {
     }
 };
 
+export const crearNoIdentificado = async (req, res) => {
+    if (!req.session.user)
+        return res.json({ ok: false, error: "Error usuario no encontrado" });
+    
+    const { 
+      fechaIngreso = new Date(), 
+      tipoIngreso, 
+      estado = 'activa', 
+      motivoInternacion, 
+      visible = 1, 
+      derivadoPor,
+      camaId, 
+      usuarioAdmiteId = req.session.user.id
+    } = req.body;
+
+    let pacienteNN = null;
+
+    try {
+      const cama = await Cama.findByPk(camaId);
+
+      if (!cama) {
+          return res.json({ ok: false, error: 'Cama no asignada' });
+      }
+
+      pacienteNN = await Paciente.create({
+        nombre: "NN",
+        apellido: "No identificado",
+        dni: "NN-" + Date.now(),           // DNI único
+        fechaNacimiento: new Date(),
+        sexo: "NN",                         // o agrega 'NN' al ENUM
+        telefono: "Desconocido",
+        direccion: "Desconocido",
+        visible: 1
+      });
+
+      if (!pacienteNN) {
+        return res.json({ ok: false, error: "No se pudo crear paciente NN" });
+      }
+
+      await pacienteNN.update({
+          dni: "NN-" + pacienteNN.idPaciente
+      });
+      
+      const pacienteId = pacienteNN.idPaciente;
+
+      await Admision.create({
+          fechaIngreso,
+          tipoIngreso,
+          estado,
+          motivoInternacion,
+          visible,
+          derivadoPor,
+          pacienteId,
+          camaId,
+          usuarioAdmiteId
+      });
+
+      await Cama.update(
+        { estado:'ocupada' },
+        { where: { idCama: camaId }}
+      )
+
+      return res.json({ ok: true });
+    } catch (error) {
+
+      if (pacienteNN) {
+        await pacienteNN.destroy();
+      }
+
+      return res.json({ ok: false, error: "Error al crear admision" });
+    }
+};
+
 export const darDeBaja = async (req, res) => {
   try {
     await Admision.update(
@@ -169,6 +242,7 @@ export const filtrarCamas = async (req, res) => {
   const idAla = Number(req.params.idAla);
   const idHabitacion = Number(req.params.idHabitacion);
   const idPaciente = Number(req.params.idPaciente);
+  const pacienteNN = req.params.pacienteNN;
 
   // Solo camas libres y visibles
   let where = {
@@ -216,10 +290,15 @@ export const filtrarCamas = async (req, res) => {
     const paciente = await Paciente.findByPk(idPaciente);
 
     const camasFiltradas = camas.filter(cama => {
-      if (!paciente) return true;
-
       const habitacion = cama.Habitacion;
 
+      // Si el paciente es no identificado solo se admiten habitaciones individuales
+      if (pacienteNN=="true") return habitacion.tipo === 'individual';
+
+      if (!paciente) return true;
+
+      // Si el paciente es no identificado solo se admiten habitaciones individuales
+      if (paciente.nombre == 'NN') return habitacion.tipo === 'individual';
       // Individual → cualquier cama libre sirve
       if (habitacion.tipo === 'individual') return true;
 
@@ -263,7 +342,7 @@ export const filtrarPacientes = async (req, res) => {
     });
 
     let pacientesFiltros = pacientes.filter(paciente => {
-      return paciente.Admisions.length === 0;
+      return paciente.Admisions.length === 0 && paciente.nombre != "NN";
     });
 
     return res.json(pacientesFiltros);

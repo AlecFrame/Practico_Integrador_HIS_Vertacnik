@@ -36,7 +36,7 @@ block content
 
       button.btn.btn-outline-primary(type="submit") Buscar
 
-    if (user.rol == 'admin')
+    if (['admin', 'recepcion'].includes(user.rol))
       button.btn.btn-success.mx-3.mt-3(
         type="button"
         data-bs-toggle="modal"
@@ -54,7 +54,7 @@ block content
         th Teléfono
         th Dirección
         th Estado
-        if (user.rol == 'admin')
+        if (['admin', 'recepcion'].includes(user.rol))
           th Acciones
     tbody
       if pacientes.length > 0
@@ -72,22 +72,23 @@ block content
                 span.bg-success.text-white(style="padding: 4px 10px; border-radius: 5px;") Activo
               else 
                 span.bg-secondary.text-white(style="padding: 4px 10px; border-radius: 5px;") Inactivo
-            if (user.rol == 'admin')
+            if (['admin', 'recepcion'].includes(user.rol))
               td
                 if p.visible == 1
-                  button.btn.btn-sm.btn-warning.mx-1(
-                    type="button"
-                    data-bs-toggle="modal"
-                    data-bs-target="#modalEditarPaciente"
-                    data-id=p.idPaciente
-                    data-nombre=p.nombre
-                    data-apellido=p.apellido
-                    data-dni=p.dni
-                    data-fecha=p.fechaNacimiento
-                    data-sexo=p.sexo
-                    data-telefono=p.telefono
-                    data-direccion=p.direccion
-                  ) Editar
+                  if p.nombre!="NN"
+                    button.btn.btn-sm.btn-warning.mx-1(
+                      type="button"
+                      data-bs-toggle="modal"
+                      data-bs-target="#modalEditarPaciente"
+                      data-id=p.idPaciente
+                      data-nombre=p.nombre
+                      data-apellido=p.apellido
+                      data-dni=p.dni
+                      data-fecha=p.fechaNacimiento
+                      data-sexo=p.sexo
+                      data-telefono=p.telefono
+                      data-direccion=p.direccion
+                    ) Editar
                   button.btn.btn-sm.btn-danger.mx-1(
                     type="button"
                     data-bs-toggle="modal"
@@ -113,7 +114,7 @@ block content
               href=`/pacientes?estado=${estado}&buscar=${buscar}&page=${n}`
             ) #{n}
   
-  if (user.rol == 'admin')
+  if (['admin', 'recepcion'].includes(user.rol))
     //- MODAL CREAR PACIENTE
     #modalCrearPaciente.modal.fade(tabindex="-1" aria-hidden="true")
       .modal-dialog

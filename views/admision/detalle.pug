@@ -40,6 +40,17 @@ block content
             strong Cobertura: 
             | #{admision.Paciente.obraSocial || 'No especificada'}
 
+      if (admision.Paciente.nombre == "NN" && user.rol=="medico")
+        hr
+        
+        .d-flex(style="justify-content: right;")
+          button#btnIdentificar.btn.btn-warning(
+              type="button"
+              data-bs-toggle="modal"
+              data-bs-target="#modalIdentificar"
+              data-id=admision.Paciente.idPaciente
+              ) Identificar Paciente
+
   // ============================
   // SECCIÓN: Datos de la Admisión
   // ============================
@@ -654,6 +665,66 @@ block content
             button.btn.btn-secondary(type="button" data-bs-dismiss="modal") Cancelar
             button.btn.btn-primary(type="submit" form="formCrearAlta") Guardar
 
+        //- MODAL CREAR PACIENTE
+    
+    //- MODAL PARA IDENTIFICAR AL PACIENTE
+    #modalIdentificar.modal.fade(tabindex="-1" aria-hidden="true")
+      .modal-dialog
+        .modal-content
+          .modal-header
+            h5.modal-title Identificar Paciente
+            button.btn-close(type="button", data-bs-dismiss="modal")
+
+          .modal-body
+            form#formIdentificar
+              input(type="hidden" name="pacienteNNId")
+
+              .mb-3
+                .form-check
+                  input.form-check-input(type="checkbox" name="existente")
+                  label.form-check-label Relacionar con paciente ya existente
+              hr
+
+              .mb-3.hideImportant#formRelacionarPaciente
+                label.form-label Paciente
+                select#selectCrearPaciente.form-control(name="pacienteId")
+              
+              #formCrearPaciente
+                .mb-3
+                  label.form-label Nombre
+                  input.form-control(name="nombre" required)
+
+                .mb-3
+                  label.form-label Apellido
+                  input.form-control(name="apellido" required)
+
+                .mb-3
+                  label.form-label DNI
+                  input.form-control(name="dni" required)
+
+                .mb-3
+                  label.form-label Fecha de Nacimiento
+                  input.form-control(type="date" name="fechaNacimiento" required)
+
+                .mb-3
+                  label.form-label Sexo
+                  select.form-control(name="sexo")
+                    option(value="M") Masculino
+                    option(value="F") Femenino
+
+                .mb-3
+                  label.form-label Teléfono
+                  input.form-control(name="telefono")
+
+                .mb-3
+                  label.form-label Dirección
+                  input.form-control(name="direccion")
+
+          .modal-footer
+            button.btn.btn-secondary(type="button" data-bs-dismiss="modal") Cancelar
+            button.btn.btn-primary(type="submit" form="formIdentificar") Identificar
+
+
   if (['admin', 'recepcion'].includes(user.rol))
     //- MODAL ADMISION PARA CONFIRMAR LA BAJA LOGICA
     #modalBajaAdmision.modal.fade(tabindex="-1" aria-hidden="true")
@@ -990,4 +1061,93 @@ block content
           localStorage.removeItem("scrollAdmision");
         }
       });
+
+      // ------- FORM IDENTIFICAR --------
+      const formIdentificar = document.getElementById("formIdentificar");
+      const modalIdentificar = document.getElementById("modalIdentificar");
+
+      if (formIdentificar && modalIdentificar) {
+        const formRelacionarPaciente = document.getElementById("formRelacionarPaciente");
+        const formCrearPaciente = document.getElementById("formCrearPaciente");
+
+        modalIdentificar.addEventListener("show.bs.modal", (event) => {
+          const button = event.relatedTarget;
+
+          formIdentificar.pacienteNNId.value = button.dataset.id;
+        });
+
+        $(document).ready(function() {
+            $('#selectCrearPaciente').select2({
+              theme: "bootstrap5",
+              language: "es",
+              dropdownParent: modalIdentificar,
+              placeholder: 'Buscar paciente...',
+              minimumInputLength: 2,
+              ajax: {
+                url: '/admisiones/api/pacientes',
+                dataType: 'json',
+                delay: 300,
+                data: params => ({
+                  q: params.term
+                }),
+                processResults: data => ({
+                  results: data.map(p => ({
+                    id: p.idPaciente,
+                    text: `${p.nombre} ${p.apellido} - DNI: ${p.dni}`
+                  }))
+                })
+              }
+            });
+        });
+
+        formIdentificar.existente.addEventListener("change", () => {
+          const checked = formIdentificar.existente.checked
+
+          formIdentificar.pacienteId.disabled = !checked;
+          formIdentificar.pacienteId.required = checked;
+
+          formIdentificar.nombre.required = !checked;
+          formIdentificar.apellido.required = !checked;
+          formIdentificar.dni.required = !checked;
+          formIdentificar.fechaNacimiento.required = !checked;
+          formIdentificar.sexo.required = !checked;
+          formIdentificar.telefono.required = !checked;
+          formIdentificar.direccion.required = !checked;
+
+          if (checked) {
+            formCrearPaciente.classList.add("hideImportant");
+            formRelacionarPaciente.classList.remove("hideImportant");
+          }else {
+            formRelacionarPaciente.classList.add("hideImportant");
+            formCrearPaciente.classList.remove("hideImportant");
+          }
+        });
+
+        formIdentificar.addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const data = Object.fromEntries(new FormData(formIdentificar));
+
+          if (formIdentificar.existente.checked) {
+            const res = await fetch("/pacientes/relacionar", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(data)
+            });
+
+            const json = await res.json();
+            if (json.ok) location.reload();
+            else alert(json.error);
+          }else {
+            const res = await fetch("/pacientes/crear", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(data)
+            });
+
+            const json = await res.json();
+            if (json.ok) location.reload();
+            else alert(json.error);
+          }
+        });
+      }
     });

@@ -2,7 +2,7 @@ import express from 'express';
 import { requireLogin, allowRoles } from '../middleware/auth.js';
 import { filtrarAlas, filtrarHabitaciones } from '../controllers/camaController.js';
 import {
-    listar, crear, cambiarEstado, filtrarCamas, filtrarPacientes, detalles
+    listar, crear, crearNoIdentificado, cambiarEstado, filtrarCamas, filtrarPacientes, detalles
 } from '../controllers/admisionController.js';
 
 const router = express.Router();
@@ -13,12 +13,13 @@ router.get('/', listar);
 router.get('/detalle/:id', detalles);
 router.get('/api/alas/:idUnidad', filtrarAlas);
 router.get("/api/habitaciones/:idAla", filtrarHabitaciones);
-router.get("/api/camas/:idUnidad&:idAla&:idHabitacion&:idPaciente", filtrarCamas);
+router.get("/api/camas/:idUnidad&:idAla&:idHabitacion&:idPaciente&:pacienteNN", filtrarCamas);
 router.get("/api/pacientes", filtrarPacientes);
 
 router.use(allowRoles('admin', 'recepcion'));
 
 router.post('/crear', crear);
+router.post('/crearNN', crearNoIdentificado);
 router.post('/cambiarEstado/:id&:estado', cambiarEstado);
 
 export default router;

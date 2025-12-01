@@ -119,9 +119,18 @@ block content
 
           .modal-body
             form#formCrearAdmision
-              .mb-3
+              .mb-3#formCrearPaciente
                 label.form-label Paciente
                 select#selectCrearPaciente.form-control(name="pacienteId")
+
+              .mb-3.hideImportant#formCrearPacienteNN
+                label.form-label Paciente NN
+                input.form-control(name="pacienteIdNN" disabled)
+              
+              .mb-3.d-flex(style="justify-content: right;")
+                .form-check
+                  input.form-check-input(type="checkbox" name="pacienteNN")
+                  label.form-check-label Paciente no identificado
               
               .mb-3
                 label.form-label Tipo de ingreso
@@ -222,6 +231,23 @@ block content
             $('#selectCrearPaciente').on('select2:select', function (e) {
                 formCrearCargarCamas();
             });
+        });
+
+        formCrear.pacienteNN.addEventListener("change", () => {
+          const formCrearPaciente = document.getElementById("formCrearPaciente");
+          const formCrearPacienteNN = document.getElementById("formCrearPacienteNN");
+
+          formCrear.pacienteId.disabled = formCrear.pacienteNN.checked;
+          formCrearCargarCamas();
+
+          if (formCrear.pacienteNN.checked && formCrearPaciente && formCrearPacienteNN) {
+            formCrear.pacienteIdNN.value = "No identificado";
+            formCrearPaciente.classList.add("hideImportant");
+            formCrearPacienteNN.classList.remove("hideImportant");
+          }else {
+            formCrearPacienteNN.classList.add("hideImportant");
+            formCrearPaciente.classList.remove("hideImportant");
+          }
         });
 
         btnAgregarAdmision.addEventListener("click", async (event) => {
@@ -326,7 +352,7 @@ block content
         });
 
         async function formCrearCargarCamas() {
-          const res = await fetch(`/admisiones/api/camas/${formCrear.unidadId.value}&${formCrear.alaId.value}&${formCrear.habitacionId.value}&${formCrear.pacienteId.value || 0}`);
+          const res = await fetch(`/admisiones/api/camas/${formCrear.unidadId.value}&${formCrear.alaId.value}&${formCrear.habitacionId.value}&${formCrear.pacienteId.value || 0}&${formCrear.pacienteNN.checked}`);
           const resJson = await res.json();
           const camas = resJson.camas;
 
@@ -343,15 +369,27 @@ block content
           e.preventDefault();
           const data = Object.fromEntries(new FormData(formCrear));
 
-          const res = await fetch("/admisiones/crear", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(data)
-          });
+          if (data.pacienteNN) {
+            const res = await fetch("/admisiones/crearNN", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(data)
+            });
 
-          const json = await res.json();
-          if (json.ok) location.reload();
-          else alert(json.error);
+            const json = await res.json();
+            if (json.ok) location.reload();
+            else alert(json.error);
+          }else {
+            const res = await fetch("/admisiones/crear", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(data)
+            });
+
+            const json = await res.json();
+            if (json.ok) location.reload();
+            else alert(json.error);
+          }
         });
       }
 

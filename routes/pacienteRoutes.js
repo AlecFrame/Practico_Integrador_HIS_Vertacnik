@@ -1,21 +1,22 @@
 import express from 'express';
 import { requireLogin, allowRoles } from '../middleware/auth.js';
 import {
-    listarPacientes, crearPaciente, actualizarPaciente, darDeBajaPaciente, darDeAltaPaciente
+    listar, crear, actualizar, darDeBaja, darDeAlta, relacionar
 } from '../controllers/pacienteController.js';
 
 const router = express.Router();
 
 router.use(requireLogin);
 
-router.get('/', listarPacientes);
+router.get('/', listar);
+router.post('/relacionar', allowRoles('medico'), relacionar);
+router.post('/crear', allowRoles('admin', 'recepcion', 'medico'), crear);
 
 router.use(allowRoles('admin', 'recepcion'));
 
-router.post('/crear', crearPaciente);
-router.post('/editar/:id', actualizarPaciente);
-router.post('/baja/:id', darDeBajaPaciente);
-router.post('/alta/:id', darDeAltaPaciente);
+router.post('/editar/:id', actualizar);
+router.post('/baja/:id', darDeBaja);
+router.post('/alta/:id', darDeAlta);
 
 
 export default router;

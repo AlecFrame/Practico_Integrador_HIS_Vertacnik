@@ -8,7 +8,7 @@ export function requireLogin(req, res, next) {
 
 export function isLogged(req, res, next) {
     if (req.session.user) {
-        return res.redirect("/users/dashboard");
+        return res.redirect("/users/inicio");
     }
     next();
 }

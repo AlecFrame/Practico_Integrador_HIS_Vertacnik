@@ -35,7 +35,7 @@ export const loginPost = async (req, res) => {
         avatar: usuario.avatar
     };
 
-    res.redirect("/users/dashboard");
+    res.redirect("/users/inicio");
 };
 
 export const logout = (req, res) => {

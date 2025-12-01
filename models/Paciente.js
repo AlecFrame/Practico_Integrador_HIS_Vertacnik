@@ -9,9 +9,9 @@ const Paciente = sequelize.define('Paciente', {
     },
     nombre: DataTypes.STRING(50),
     apellido: DataTypes.STRING(50),
-    dni: { type: DataTypes.STRING(10), unique: true },
+    dni: { type: DataTypes.STRING(20), unique: true },
     fechaNacimiento: DataTypes.DATE,
-    sexo: DataTypes.ENUM('M', 'F'),
+    sexo: DataTypes.ENUM('M', 'F', 'NN'),
     telefono: DataTypes.STRING(15),
     direccion: DataTypes.STRING,
     visible: DataTypes.TINYINT

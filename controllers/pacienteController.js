@@ -1,7 +1,7 @@
-import { Paciente } from '../models/index.js';
+import { Paciente, Admision } from '../models/index.js';
 import { Op } from "sequelize";
 
-export const listarPacientes = async (req, res) => {
+export const listar = async (req, res) => {
   const estado = req.query.estado || "activos";
   const buscar = req.query.buscar || "";
   const page = parseInt(req.query.page) || 1;
@@ -39,11 +39,13 @@ export const listarPacientes = async (req, res) => {
   });
 };
 
-export const crearPaciente = async (req, res) => {
-    const { nombre, apellido, dni, fechaNacimiento, sexo, telefono, direccion, visible=1 } = req.body;
+export const crear = async (req, res) => {
+    const { nombre, apellido, dni, fechaNacimiento, sexo, telefono, direccion, visible=1, pacienteNNId } = req.body;
+
+    let paciente = null;
 
     try {
-        await Paciente.create({
+        paciente = await Paciente.create({
             nombre,
             apellido,
             dni,
@@ -54,13 +56,29 @@ export const crearPaciente = async (req, res) => {
             visible
         });
 
+        if (!paciente)
+          return res.json({ ok: false, error: "El paciente no se pudo crear" });
+
+        if (pacienteNNId) {
+          // Marcar el paciente NN como invisible
+          await Paciente.update(
+              { visible: 0 },
+              { where: { idPaciente: pacienteNNId } }
+          );
+
+          await Admision.update(
+            { pacienteId: paciente.idPaciente },
+            { where: { pacienteId: pacienteNNId } }
+          );
+        }
+
         return res.json({ ok: true });
     } catch (error) {
         return res.json({ ok: false, error: "Error al crear paciente" });
     }
 };
 
-export const actualizarPaciente = async (req, res) => {
+export const actualizar = async (req, res) => {
     const { nombre, apellido, dni, fechaNacimiento, sexo, telefono, direccion } = req.body;
 
     try {
@@ -75,7 +93,7 @@ export const actualizarPaciente = async (req, res) => {
     }
 };
 
-export const darDeBajaPaciente = async (req, res) => {
+export const darDeBaja = async (req, res) => {
   try {
     await Paciente.update(
       { visible: 0 },
@@ -87,7 +105,7 @@ export const darDeBajaPaciente = async (req, res) => {
   }
 };
 
-export const darDeAltaPaciente = async (req, res) => {
+export const darDeAlta = async (req, res) => {
   try {
     await Paciente.update(
       { visible: 1 },
@@ -97,4 +115,41 @@ export const darDeAltaPaciente = async (req, res) => {
   } catch (err) {
     return res.json({ ok: false, error: "Error al dar de alta" });
   }
+};
+
+export const relacionar = async (req, res) => {
+    const { pacienteNNId, pacienteId } = req.body;
+
+    try {
+        const pacienteReal = await Paciente.findByPk(pacienteId);
+        if (!pacienteReal)
+            return res.json({ ok: false, error: "Paciente real no encontrado" });
+
+        const pacienteNN = await Paciente.findByPk(pacienteNNId);
+        if (!pacienteNN)
+            return res.json({ ok: false, error: "Paciente NN no encontrado" });
+
+        // Actualizar todas las admisiones que pertenecían al NN
+        const result = await Admision.update(
+            { pacienteId: pacienteId },
+            { where: { pacienteId: pacienteNNId } }
+        );
+
+        // Marcar el paciente NN como invisible
+        await Paciente.update(
+            { visible: 0 },
+            { where: { idPaciente: pacienteNNId } }
+        );
+
+        return res.json({
+            ok: true,
+            reasignadas: result[0],   // cuántas admisiones se reasociaron
+            pacienteRealId: pacienteId,
+            pacienteNNId
+        });
+
+    } catch (error) {
+        console.error(error);
+        return res.json({ ok: false, error: "Error al relacionar paciente" });
+    }
 };
