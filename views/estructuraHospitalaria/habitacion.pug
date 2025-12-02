@@ -7,45 +7,44 @@ block content
     .d-flex.justify-content-between.align-items-center.mt-3
       .btn-group
         a.btn.btn-outline-primary(
-          href="/habitaciones?estado=todos"
+          href=`/habitaciones?estado=todos&alaFiltro=${alaFiltro}&unidadFiltro=${unidadFiltro}&tipoFiltro=${tipoFiltro}`
           class=estado==="todos" ? "active" : ""
         ) Todos
 
         a.btn.btn-outline-success(
-          href="/habitaciones?estado=activos"
+          href=`/habitaciones?estado=activos&alaFiltro=${alaFiltro}&unidadFiltro=${unidadFiltro}&tipoFiltro=${tipoFiltro}`
           class=estado==="activos" ? "active" : ""
         ) Activos
 
         a.btn.btn-outline-secondary(
-          href="/habitaciones?estado=inactivos"
+          href=`/habitaciones?estado=inactivos&alaFiltro=${alaFiltro}&unidadFiltro=${unidadFiltro}&tipoFiltro=${tipoFiltro}`
           class=estado==="inactivos" ? "active" : ""
         ) Inactivos
 
     //- BUSCADOR
-    form(method="GET" action="/habitaciones" class="d-flex gap-2 mt-3")
-      select.form-control(name="alaFiltro" style="width: 250px;")
-        option(
-          value=0
-          selected=alaFiltro == 0
-        ) De todas las Alas
+    form#formFiltros(method="GET" action="/habitaciones" class="d-flex gap-2 mt-3")
+      select.form-control(name="unidadFiltro" style="width: 200px;")
+        option(value=0 selected=unidadFiltro == 0 ) De todas las Unidades
+        each u in unidades
+          option(value=u.idUnidad selected=unidadFiltro == u.idUnidad) #{u.nombre}
+      
+      select.form-control(name="alaFiltro" style="width: 200px;" disabled)
+        option(value=0 selected=alaFiltro == 0 ) Filtrar Ala
 
-        each a in alas
-          option(
-            value=a.idAla
-            selected=alaFiltro == a.idAla
-          ) #{a.nombre}
-
-      select.form-control(name="tipoFiltro" style="width: 250px;")
+      select.form-control(name="tipoFiltro" style="width: 200px;")
         option(value='' selected=tipoFiltro == 0) De todos los tipos
         option(value='individual' selected=tipoFiltro == 'individual') Individual
         option(value='doble' selected=tipoFiltro == 'doble') Doble
 
       input(type="hidden" name="estado" value=estado)
+      input(type="hidden" name="unidadFiltroG" value=unidadFiltro)
+      input(type="hidden" name="alaFiltroG" value=alaFiltro)
+      input(type="hidden" name="flagChanges" value=0)
 
       button.btn.btn-outline-primary(type="submit") Buscar
 
     if (user.rol == 'admin')
-      button.btn.btn-success.mx-3.mt-3(
+      button#btnCrear.btn.btn-success.mx-3.mt-3(
         type="button"
         data-bs-toggle="modal"
         data-bs-target="#modalCrearHabitacion"
@@ -86,6 +85,7 @@ block content
                     data-id=h.idHabitacion
                     data-numero=h.numero
                     data-tipo=h.tipo
+                    data-unidad-id=h.Ala.unidadId
                     data-ala-id=h.Ala.idAla
                   ) Editar
                   button.btn.btn-sm.btn-danger.mx-1(
@@ -110,7 +110,7 @@ block content
         each n in Array(totalPages).fill(0).map((_, i) => i + 1)
           li.page-item(class=page===n ? "active" : "")
             a.page-link(
-              href=`/habitaciones?estado=${estado}&buscar=${buscar}&page=${n}`
+              href=`/habitaciones?estado=${estado}&alaFiltro=${alaFiltro}&unidadFiltro=${unidadFiltro}&tipoFiltro=${tipoFiltro}&page=${n}`
             ) #{n}
   
   if (user.rol == 'admin')
@@ -125,10 +125,15 @@ block content
           .modal-body
             form#formCrearHabitacion
               .mb-3
+                label.form-label Unidad
+                select.form-control(name="unidadId")
+                  each u in unidades
+                    option(value=u.idUnidad) #{u.nombre}
+              
+              .mb-3
                 label.form-label Ala
                 select.form-control(name="alaId")
-                  each a in alas
-                    option(value=a.idAla) #{a.nombre}
+                  option(value=0) Falta especificar
 
               .mb-3
                 label.form-label Número
@@ -155,12 +160,16 @@ block content
           .modal-body
             form#formEditarHabitacion
               input(type="hidden" name="id")
+              .mb-3
+                label.form-label Unidad
+                select.form-control(name="unidadId")
+                  each u in unidades
+                    option(value=u.idUnidad) #{u.nombre}
 
               .mb-3
                 label.form-label Ala
                 select.form-control(name="alaId")
-                  each a in alas
-                    option(value=a.idAla) #{a.nombre}
+                  option(value=0) Falta especificar
 
               .mb-3
                 label.form-label Número
@@ -206,8 +215,35 @@ block content
 
       // -------- CREAR HABITACION --------
       const formCrear = document.getElementById("formCrearHabitacion");
+      const btnCrear = document.getElementById("btnCrear");
 
-      if (formCrear) {
+      if (formCrear && btnCrear) {
+        btnCrear.addEventListener("click", async (event) => {
+          const button = event.relatedTarget;
+
+          const res = await fetch(`/camas/api/alas/${formCrear.unidadId.value}`);
+          const resJson = await res.json();
+          const alas = resJson.alas;
+
+          formCrear.alaId.innerHTML = `<option value="0">Falta especificar</option>`;
+
+          alas.forEach(a => {
+            formCrear.alaId.innerHTML += `<option value="${a.idAla}">${a.nombre}</option>`;
+          });
+        });
+
+        formCrear.unidadId.addEventListener("change", async () => {
+          const res = await fetch(`/camas/api/alas/${formCrear.unidadId.value}`);
+          const resJson = await res.json();
+          const alas = resJson.alas;
+
+          formCrear.alaId.innerHTML = `<option value="0">Falta especificar</option>`;
+          
+          alas.forEach(a => {
+            formCrear.alaId.innerHTML += `<option value="${a.idAla}">${a.nombre}</option>`;
+          });
+        });
+
         formCrear.addEventListener("submit", async (e) => {
           e.preventDefault();
           const data = Object.fromEntries(new FormData(formCrear));
@@ -229,17 +265,42 @@ block content
       const formEditar = document.getElementById("formEditarHabitacion");
 
       if (modalEditar && formEditar) {
-        modalEditar.addEventListener("show.bs.modal", (event) => {
+        modalEditar.addEventListener("show.bs.modal", async (event) => {
           const button = event.relatedTarget;
 
           formEditar.id.value = button.dataset.id;
           formEditar.numero.value = button.dataset.numero;
+
+          const unidadId = button.dataset.unidadId;
+          formEditar.unidadId.value = unidadId;
+          
+          const resAla = await fetch(`/camas/api/alas/${unidadId}`);
+          const resAlaJson = await resAla.json();
+          const alas = resAlaJson.alas;
+
+          formEditar.alaId.innerHTML = `<option value="0">Falta especificar</option>`;
+
+          alas.forEach(a => {
+            formEditar.alaId.innerHTML += `<option value="${a.idAla}">${a.nombre}</option>`;
+          });
 
           const alaId = button.dataset.alaId;
           formEditar.alaId.value = alaId;
 
           const tipo = button.dataset.tipo;
           formEditar.tipo.value = tipo;
+        });
+
+        formEditar.unidadId.addEventListener("change", async () => {
+          const res = await fetch(`/camas/api/alas/${formEditar.unidadId.value}`);
+          const resJson = await res.json();
+          const alas = resJson.alas;
+
+          formEditar.alaId.innerHTML = `<option value="0">Falta especificar</option>`;
+          
+          alas.forEach(a => {
+            formEditar.alaId.innerHTML += `<option value="${a.idAla}">${a.nombre}</option>`;
+          });
         });
 
         formEditar.addEventListener("submit", async (e) => {
@@ -316,4 +377,74 @@ block content
           else alert(json.error || "Error al dar de alta");
         });
       });
+
+      // -------- FILTROS --------
+      const formFiltros = document.getElementById("formFiltros");
+      let selecteds = {
+        unidad: formFiltros.unidadFiltroG.value, 
+        ala: formFiltros.alaFiltroG.value
+      };
+
+      if (formFiltros) {
+        formFiltros.flagChanges.value = 0;
+        cargarFiltros(formFiltros, selecteds);
+
+        formFiltros.addEventListener("change", async () => {
+          formFiltros.flagChanges.value = 1;
+          
+          formFiltros.alaFiltro.disabled = formFiltros.unidadFiltro.value==0
+
+          cargarFiltros(formFiltros, selecteds);
+        });
+      }
+
+      async function cargarFiltros(formFiltros, selecteds) {
+        const unidadId = formFiltros.unidadFiltro.value;
+        let alaId = formFiltros.alaFiltro.value;
+
+        // ------- Cargar ALAS al cambiar Unidad -------
+        if (unidadId != 0) {
+          formFiltros.alaFiltro.disabled = false;
+
+          if (formFiltros.flagChanges.value == 0 || selecteds.unidad != unidadId) {
+            selecteds.unidad = unidadId;
+            const res = await fetch(`/camas/api/alas/${unidadId}`);
+            const resJson = await res.json();
+            const alas = resJson.alas;
+
+            // Limpiar opciones previas
+            formFiltros.alaFiltro.innerHTML = `<option value="0">Filtrar Ala</option>`;
+
+            // Agregar alas
+            alas.forEach(a => {
+              formFiltros.alaFiltro.innerHTML += `<option value="${a.idAla}">${a.nombre}</option>`;
+            });
+
+            if (formFiltros.flagChanges.value == 0) {
+              alaId = selecteds.ala;
+
+              formFiltros.alaFiltro.value = alaId;
+              formFiltros.alaFiltro.selected = alaId;
+            }
+          }
+        } else {
+          formFiltros.alaFiltro.innerHTML = `<option value="0">Filtrar Ala</option>`;
+
+          selecteds.unidad = 0;
+          selecteds.ala = 0;
+          formFiltros.unidadFiltroG.value = 0;
+          formFiltros.alaFiltroG.value = 0;
+          
+          formFiltros.alaFiltro.disabled = true;
+        }
+
+        // ------- Cargar HABITACIONES al cambiar Ala -------
+        if (alaId != 0) {
+
+          if (formFiltros.flagChanges.value == 0 || selecteds.ala != alaId) {
+            selecteds.ala = alaId;
+          }
+        }
+      }
+
     });

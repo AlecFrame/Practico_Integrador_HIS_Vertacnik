@@ -7,22 +7,22 @@ block content
     .d-flex.justify-content-between.align-items-center.mt-3
       .btn-group
         a.btn.btn-outline-primary(
-          href="/admisiones?estado=todos"
+          href=`/admisiones?estado=todos&tIF=${tIF}`
           class=estado==="todos" ? "active" : ""
         ) Todos
 
         a.btn.btn-outline-success(
-          href="/admisiones?estado=activa"
+          href=`/admisiones?estado=activa&tIF=${tIF}`
           class=estado==="activa" ? "active" : ""
         ) Activas
 
         a.btn.btn-outline-secondary(
-          href="/admisiones?estado=cancelada"
+          href=`/admisiones?estado=cancelada&tIF=${tIF}`
           class=estado==="cancelada" ? "active" : ""
         ) Canceladas
 
         a.btn.btn-outline-info(
-          href="/admisiones?estado=finalizada"
+          href=`/admisiones?estado=finalizada&tIF=${tIF}`
           class=estado==="finalizada" ? "active" : ""
         ) Finalizadas
 
@@ -105,7 +105,7 @@ block content
         each n in Array(totalPages).fill(0).map((_, i) => i + 1)
           li.page-item(class=page===n ? "active" : "")
             a.page-link(
-              href=`/admisiones?estado=${estado}&buscar=${buscar}&page=${n}`
+              href=`/admisiones?estado=${estado}&tIF=${tIF}&page=${n}`
             ) #{n}
   
   if (['admin', 'recepcion'].includes(user.rol))

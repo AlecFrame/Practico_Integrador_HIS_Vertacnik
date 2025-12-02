@@ -1,4 +1,6 @@
 import { Unidad, Ala, Habitacion, Cama } from '../models/index.js';
+import { auditar } from '../controllers/auditoriaController.js';
+import { agregarCambio } from '../middleware/helper.js';
 import { Op } from "sequelize";
 
 export const listar = async (req, res) => {
@@ -83,12 +85,18 @@ export const crear = async (req, res) => {
 
     try {
         const habitacion = await Habitacion.findByPk(habitacionId, {
-          include: [{
-            model: Cama,
-            as: 'Camas',
-            where: { visible: 1 },
-            required: false
-          }]
+          include: [
+            {
+              model: Cama,
+              as: 'Camas',
+              where: { visible: 1 },
+              required: false
+            }, {
+              model: Ala,
+              as: 'Ala',
+              include: [{ model: Unidad, as: 'Unidad' }]
+            }
+          ]
         });
 
         if (!habitacion) {
@@ -106,7 +114,17 @@ export const crear = async (req, res) => {
             });
         }
 
-        await Cama.create({ numero, estado, habitacionId, visible });
+        const cama = await Cama.create({ numero, estado, habitacionId, visible });
+
+        await auditar(
+            req.session.user.id,
+            "Cama",
+            cama.idCama,
+            "Crear",
+            `Creó la Cama#${cama.idCama} para la habitación ${habitacion.numero} (${habitacion.tipo}) del ${habitacion.Ala.nombre} de ${habitacion.Ala.Unidad.nombre}`,
+            `/camas?estado=${cama.visible? 'activos':'inactivos'}&unidadFiltro=${habitacion.Ala.unidadId}&alaFiltro=${habitacion.alaId}&habitacionFiltro=${habitacionId}&tHF=${habitacion.tipo}&eCF=${cama.estado}`,
+            null
+        );
 
         return res.json({ ok: true });
     } catch (error) {
@@ -119,6 +137,17 @@ export const actualizar = async (req, res) => {
     const { numero, estado, habitacionId } = req.body;
 
     try {
+        const cama = await Cama.findByPk(req.params.id);
+
+        if (!cama)
+          return res.json({ ok: false, error: 'No se encontro la Cama' });
+
+        const camaAntes = {
+          numero: cama.numero, 
+          estado: cama.estado, 
+          habitacionId: cama.habitacionId
+        };
+        
         const habitacion = await Habitacion.findByPk(habitacionId, {
           include: [{
             model: Cama,
@@ -128,7 +157,12 @@ export const actualizar = async (req, res) => {
               idCama: { [Op.ne]: req.params.id } // excluir contar esta misma cama
             },
             required: false
-          }]
+          }, {
+            model: Ala,
+            as: 'Ala',
+            include: [{ model: Unidad, as: 'Unidad' }]
+          }
+          ]
         });
 
         if (!habitacion) {
@@ -151,6 +185,25 @@ export const actualizar = async (req, res) => {
             { where: { idCama: req.params.id } }
         );
 
+        const cambios = [];
+        agregarCambio(cambios, "numero", camaAntes.numero, numero);
+        agregarCambio(cambios, "estado", camaAntes.estado, estado);
+        agregarCambio(cambios, "habitacionId", camaAntes.habitacionId, habitacionId);
+  
+        const descripcion = cambios.length > 0
+          ? `Cambios: ${cambios.join(", ")}`
+          : "No hubo cambios en los datos";
+        
+        await auditar(
+            req.session.user.id,
+            "Cama",
+            cama.idCama,
+            "Editar",
+            descripcion,
+            `/camas?estado=${cama.visible? 'activos':'inactivos'}&unidadFiltro=${habitacion.Ala.unidadId}&alaFiltro=${habitacion.alaId}&habitacionFiltro=${habitacionId}&tHF=${habitacion.tipo}&eCF=${cama.estado}`,
+            null
+        )
+
         return res.json({ ok: true });
     } catch (error) {
         return res.json({ ok: false, error: 'Error al actualizar cama' });
@@ -159,10 +212,38 @@ export const actualizar = async (req, res) => {
 
 export const darDeBaja = async (req, res) => {
   try {
+    const cama = await Cama.findByPk(req.params.id, {
+      include: [{
+        model: Habitacion,
+        as: 'Habitacion',
+        include: [{
+            model: Ala,
+            as: 'Ala',
+            include: [{ model: Unidad, as: 'Unidad' }]
+          }
+        ]
+      }]
+    });
+
+    if (!cama) {
+      return res.json({ ok: false, error: 'Cama no encontrada' });
+    }
+
     await Cama.update(
       { visible: 0 },
       { where: { idCama: req.params.id } }
     );
+    
+    await auditar(
+        req.session.user.id,
+        "Cama",
+        cama.idCama,
+        "Dar de Baja",
+        `Dio de baja la Cama#${cama.idCama} - ${cama.Habitacion.numero} (${cama.Habitacion.tipo}) - ${cama.Habitacion.Ala.nombre} - ${cama.Habitacion.Ala.Unidad.nombre}`,
+        `/camas?estado=${cama.visible? 'activos':'inactivos'}&unidadFiltro=${cama.Habitacion.Ala.unidadId}&alaFiltro=${cama.Habitacion.alaId}&habitacionFiltro=${cama.habitacionId}&tHF=${cama.Habitacion.tipo}&eCF=${cama.estado}`,
+        null
+    );
+
     return res.json({ ok: true });
   } catch (err) {
     return res.json({ ok: false, error: "Error al dar de baja" });
@@ -180,7 +261,12 @@ export const darDeAlta = async (req, res) => {
           as: 'Camas',
           where: { visible: 1 },
           required: false
-        }]
+        }, {
+            model: Ala,
+            as: 'Ala',
+            include: [{ model: Unidad, as: 'Unidad' }]
+          }
+        ]
       }]
     });
 
@@ -202,6 +288,16 @@ export const darDeAlta = async (req, res) => {
     await Cama.update(
       { visible: 1 },
       { where: { idCama: req.params.id } }
+    );
+
+    await auditar(
+        req.session.user.id,
+        "Cama",
+        cama.idCama,
+        "Dar de Alta",
+        `Dio de alta la Cama#${cama.idCama} - ${cama.Habitacion.numero} (${cama.Habitacion.tipo}) - ${cama.Habitacion.Ala.nombre} - ${cama.Habitacion.Ala.Unidad.nombre}`,
+        `/camas?estado=${cama.visible? 'activos':'inactivos'}&unidadFiltro=${cama.Habitacion.Ala.unidadId}&alaFiltro=${cama.Habitacion.alaId}&habitacionFiltro=${cama.habitacionId}&tHF=${cama.Habitacion.tipo}&eCF=${cama.estado}`,
+        null
     );
 
     return res.json({ ok: true });
@@ -252,9 +348,36 @@ export const cambiarEstado = async (req, res) => {
   const nuevoEstado = req.params.estado;
 
   try {
+    const cama = await Cama.findByPk(req.params.id, {
+      include: [{
+        model: Habitacion,
+        as: 'Habitacion',
+        include: [{
+            model: Ala,
+            as: 'Ala',
+            include: [{ model: Unidad, as: 'Unidad' }]
+          }
+        ]
+      }]
+    });
+
+    if (!cama) {
+      return res.json({ ok: false, error: 'Cama no encontrada' });
+    }
+
     await Cama.update(
       { estado: nuevoEstado },
       { where: { idCama: req.params.id } }
+    );
+    
+    await auditar(
+        req.session.user.id,
+        "Cama",
+        cama.idCama,
+        "Cambiar Estado",
+        `Cambió el estado de la Cama#${cama.idCama} - ${cama.Habitacion.numero} (${cama.Habitacion.tipo}) - ${cama.Habitacion.Ala.nombre} - ${cama.Habitacion.Ala.Unidad.nombre} a ${nuevoEstado}`,
+        `/camas?estado=${cama.visible? 'activos':'inactivos'}&unidadFiltro=${cama.Habitacion.Ala.unidadId}&alaFiltro=${cama.Habitacion.alaId}&habitacionFiltro=${cama.habitacionId}&tHF=${cama.Habitacion.tipo}&eCF=${cama.estado}`,
+        null
     );
 
     return res.json({ ok: true });

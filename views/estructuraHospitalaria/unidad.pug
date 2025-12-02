@@ -7,17 +7,17 @@ block content
     .d-flex.justify-content-between.align-items-center.mt-3
       .btn-group
         a.btn.btn-outline-primary(
-          href="/unidades?estado=todos"
+          href=`/unidades?estado=todos&buscar=${buscar}`
           class=estado==="todos" ? "active" : ""
         ) Todos
 
         a.btn.btn-outline-success(
-          href="/unidades?estado=activos"
+          href=`/unidades?estado=activos&buscar=${buscar}`
           class=estado==="activos" ? "active" : ""
         ) Activos
 
         a.btn.btn-outline-secondary(
-          href="/unidades?estado=inactivos"
+          href=`/unidades?estado=inactivos&buscar=${buscar}`
           class=estado==="inactivos" ? "active" : ""
         ) Inactivos
 

@@ -1,4 +1,5 @@
 import { Admision, Usuario, Paciente, Unidad, Ala, Habitacion, Cama, EvaluacionEnfermeria, EvaluacionMedica, AltaHospitalaria } from '../models/index.js';
+import { auditar } from '../controllers/auditoriaController.js';
 import { Op } from "sequelize";
 
 export const listar = async (req, res) => {
@@ -89,7 +90,7 @@ export const crear = async (req, res) => {
             return res.json({ ok: false, error: 'Cama no asignada' });
         }
 
-        await Admision.create({
+        const admision = await Admision.create({
             fechaIngreso,
             tipoIngreso,
             estado,
@@ -105,6 +106,16 @@ export const crear = async (req, res) => {
           { estado:'ocupada' },
           { where: { idCama: camaId }}
         )
+
+        await auditar(
+            req.session.user.id,
+            "Admision",
+            admision.idAdmision,
+            "Crear",
+            `Creó la Admisión#${admision.idAdmision} para internar al paciente#${paciente.idPaciente}  ${paciente.nombre} ${paciente.apellido} en la Cama#${cama.numero}`,
+            `/admisiones?estado=${admision.estado}&tIF=${admision.tipoIngreso}`,
+            null
+        );
 
         return res.json({ ok: true });
     } catch (error) {
@@ -144,6 +155,7 @@ export const crearNoIdentificado = async (req, res) => {
         sexo: "NN",                         // o agrega 'NN' al ENUM
         telefono: "Desconocido",
         direccion: "Desconocido",
+        obraSocial: "No especificada",
         visible: 1
       });
 
@@ -157,7 +169,7 @@ export const crearNoIdentificado = async (req, res) => {
       
       const pacienteId = pacienteNN.idPaciente;
 
-      await Admision.create({
+      const admision = await Admision.create({
           fechaIngreso,
           tipoIngreso,
           estado,
@@ -174,6 +186,16 @@ export const crearNoIdentificado = async (req, res) => {
         { where: { idCama: camaId }}
       )
 
+      await auditar(
+          req.session.user.id,
+          "Admision",
+          admision.idAdmision,
+          "Crear",
+          `Creó la Admisión#${admision.idAdmision} para internar al paciente NN-${pacienteId} no identificado en la Cama#${cama.numero}`,
+          `/admisiones?estado=${admision.estado}&tIF=${admision.tipoIngreso}`,
+          null
+      );
+
       return res.json({ ok: true });
     } catch (error) {
 
@@ -187,9 +209,24 @@ export const crearNoIdentificado = async (req, res) => {
 
 export const darDeBaja = async (req, res) => {
   try {
+    const admision = await Admision.findByPk(req.params.id)
+    
+    if (!admision)
+      return res.json({ ok: false, error: "No se encontro la Admisión" });
+    
     await Admision.update(
       { visible: 0 },
       { where: { idAdmision: req.params.id } }
+    );
+
+    await auditar(
+        req.session.user.id,
+        "Admision",
+        admision.idAdmision,
+        "Dar de Baja",
+        `Dio de baja la Admisión#${admision.idAdmision}`,
+        `/admisiones?estado=${admision.estado}&tIF=${admision.tipoIngreso}`,
+        null
     );
     return res.json({ ok: true });
   } catch (err) {
@@ -211,25 +248,29 @@ export const cambiarEstado = async (req, res) => {
       { estado: nuevoEstado },
       { where: { idAdmision: req.params.id } }
     );
+
+    let camaEstado = null;
     
-    if (nuevoEstado=='activa') {
+    if (nuevoEstado=='activa') { camaEstado = 'ocupada' }
+    if (nuevoEstado=='finalizada') { camaEstado = 'sucia'; }
+    if (nuevoEstado=='cancelada') { camaEstado = 'libre'; }
+
+    if (camaEstado) {
       await Cama.update(
-        { estado: 'ocupada' },
+        { estado: camaEstado },
         { where: { idCama: admision.camaId } }
       )
     }
-    if (nuevoEstado=='finalizada') {
-      await Cama.update(
-        { estado: 'sucia' },
-        { where: { idCama: admision.camaId } }
-      )
-    }
-    if (nuevoEstado=='cancelada') {
-      await Cama.update(
-        { estado: 'libre' },
-        { where: { idCama: admision.camaId } }
-      )
-    }
+
+    await auditar(
+        req.session.user.id,
+        "Admision",
+        admision.idAdmision,
+        "Cambiar Estado",
+        `Cambió el estado de la Admisión#${admision.idAdmision} a ${nuevoEstado} y su Cama#${admision.camaId} asociada a ${camaEstado}`,
+        `/admisiones?estado=${nuevoEstado}&tIF=${admision.tipoIngreso}`,
+        null
+    );
 
     return res.json({ ok: true });
   } catch (err) {
@@ -441,8 +482,18 @@ export const detalles = async (req, res) => {
     }]
   })
 
+  const hoy = new Date();
+  const nac = new Date(admision.Paciente.fechaNacimiento);
+  let edad = hoy.getFullYear() - nac.getFullYear();
+  const m = hoy.getMonth() - nac.getMonth();
+
+  if (m < 0 || (m === 0 && hoy.getDate() < nac.getDate())) {
+      edad--;
+  }
+
   res.render("admision/detalle", {
     admision,
+    edad,
     evaluacionesEnf: rowsEnf || [],
     evaluacionesMed: rowsMed || [],
     altaHospitalaria: (altas.length!=0)? altas[0]: null,

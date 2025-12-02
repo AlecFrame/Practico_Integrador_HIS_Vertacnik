@@ -34,7 +34,7 @@ block content
         .col-md-4
           p.mb-1
             strong Edad: 
-            | #{admision.Paciente.edad} años
+            | #{edad} años
         .col-md-4
           p.mb-1
             strong Cobertura: 
@@ -49,6 +49,7 @@ block content
               data-bs-toggle="modal"
               data-bs-target="#modalIdentificar"
               data-id=admision.Paciente.idPaciente
+              data-idadmision=admision.idAdmision
               ) Identificar Paciente
 
   // ============================
@@ -678,6 +679,7 @@ block content
           .modal-body
             form#formIdentificar
               input(type="hidden" name="pacienteNNId")
+              input(type="hidden" name="admisionId")
 
               .mb-3
                 .form-check
@@ -719,6 +721,10 @@ block content
                 .mb-3
                   label.form-label Dirección
                   input.form-control(name="direccion")
+
+                .mb-3
+                  label.form-label Obra Social
+                  input.form-control(name="obraSocial")
 
           .modal-footer
             button.btn.btn-secondary(type="button" data-bs-dismiss="modal") Cancelar
@@ -1074,6 +1080,7 @@ block content
           const button = event.relatedTarget;
 
           formIdentificar.pacienteNNId.value = button.dataset.id;
+          formIdentificar.admisionId.value = button.dataset.idadmision;
         });
 
         $(document).ready(function() {

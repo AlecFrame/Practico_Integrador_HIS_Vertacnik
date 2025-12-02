@@ -53,6 +53,7 @@ block content
         th Sexo
         th Teléfono
         th Dirección
+        th Obra Social
         th Estado
         if (['admin', 'recepcion'].includes(user.rol))
           th Acciones
@@ -67,6 +68,7 @@ block content
             td #{p.sexo}
             td #{p.telefono}
             td #{p.direccion}
+            td #{p.obraSocial || 'No especificada'}
             td 
               if p.visible > 0
                 span.bg-success.text-white(style="padding: 4px 10px; border-radius: 5px;") Activo
@@ -88,6 +90,7 @@ block content
                       data-sexo=p.sexo
                       data-telefono=p.telefono
                       data-direccion=p.direccion
+                      data-obra=p.obraSocial
                     ) Editar
                   button.btn.btn-sm.btn-danger.mx-1(
                     type="button"
@@ -102,7 +105,7 @@ block content
                   ) Dar de Alta
       else
         tr
-          td(colspan="9" class="text-center text-muted")
+          td(colspan="10" class="text-center text-muted")
             | No se encontraron pacientes
   
   if totalPages > 1
@@ -155,6 +158,10 @@ block content
                 label.form-label Dirección
                 input.form-control(name="direccion")
 
+              .mb-3
+                label.form-label Obra Social
+                input.form-control(name="obraSocial")
+
           .modal-footer
             button.btn.btn-secondary(type="button" data-bs-dismiss="modal") Cancelar
             button.btn.btn-primary(type="submit" form="formCrearPaciente") Guardar
@@ -200,6 +207,10 @@ block content
               .mb-3
                 label.form-label Dirección
                 input.form-control(name="direccion")
+
+              .mb-3
+                label.form-label Obra Social
+                input.form-control(name="obraSocial")
 
           .modal-footer
             button.btn.btn-secondary(type="button" data-bs-dismiss="modal") Cancelar
@@ -272,6 +283,7 @@ block content
           formEditar.sexo.value = button.dataset.sexo;
           formEditar.telefono.value = button.dataset.telefono;
           formEditar.direccion.value = button.dataset.direccion;
+          formEditar.obraSocial.value = button.dataset.obra || "No especificada";
         });
 
         formEditar.addEventListener("submit", async (e) => {

@@ -1,4 +1,5 @@
 import { AltaHospitalaria, Paciente, Usuario, Admision, Cama, Habitacion, Ala, Unidad } from '../models/index.js';
+import { auditar } from '../controllers/auditoriaController.js';
 import { Op } from "sequelize";
 
 export const listar = async (req, res) => {
@@ -23,11 +24,12 @@ export const listar = async (req, res) => {
     ];
   }
 
-  // Filtro por texto del Medico (nombre, apellido)
+  // Filtro por texto del Medico (nombre, apellido o email)
   if (qMedico.trim() !== "") {
     where[Op.or] = [
       { ["$Usuario.nombre$"] : { [Op.like]: `%${qMedico}%` } },
-      { ["$Usuario.apellido$"] : { [Op.like]: `%${qMedico}%` } }
+      { ["$Usuario.apellido$"] : { [Op.like]: `%${qMedico}%` } },
+      { ["$Usuario.email$"] : { [Op.like]: `%${qMedico}%` } }
     ];
   }
 
@@ -84,12 +86,14 @@ export const crear = async (req, res) => {
   } = req.body;
 
   try {
-    const admision = await Admision.findByPk(admisionId);
+    const admision = await Admision.findByPk(admisionId, {
+      include: [ { model: Paciente, as: 'Paciente' } ]
+    });
 
     if (!admision)
       return res.json({ ok: false, error: "Error Admisión no encontrada" });
 
-    await AltaHospitalaria.create({
+    const alta = await AltaHospitalaria.create({
         diagnosticoFinal, 
         indicacionesAlta, 
         seguimientoFuturo,
@@ -109,6 +113,16 @@ export const crear = async (req, res) => {
       { where: { idCama: admision.camaId } }
     )
 
+    await auditar(
+        req.session.user.id,
+        "Alta Hospitalaria",
+        alta.idAltaHospitalaria,
+        "Crear",
+        `Creó el Alta #${alta.idAltaHospitalaria} para finalizar con la admisión#${admision.idAdmision} que pone su Cama#${admision.camaId} relacionada en sucia`,
+        `/altaHospitalarias?estado=${alta.visible==1? 'activos':'inactivos'}&qPaciente=${admision.Paciente.dni}`,
+        null
+    );
+
     return res.json({ ok: true });
   } catch (error) {
     return res.json({ ok: false, error: "Error al crear AltaHospitalaria" });
@@ -117,10 +131,33 @@ export const crear = async (req, res) => {
 
 export const darDeBaja = async (req, res) => {
   try {
+    const alta = await AltaHospitalaria.findByPk(req.params.id);
+
+    if (!alta)
+      return res.json({ ok: false, error: "No se encontro el Alta Hospitalaria" });
+
+    const admision = await Admision.findByPk(alta.admisionId, {
+      include: [ { model: Paciente, as: 'Paciente' } ]
+    });
+
+    if (!admision)
+      return res.json({ ok: false, error: "Error Admisión no encontrada" });
+
     await AltaHospitalaria.update(
       { visible: 0 },
       { where: { idAltaHospitalaria: req.params.id } }
     );
+
+    await auditar(
+        req.session.user.id,
+        "Alta Hospitalaria",
+        alta.idAltaHospitalaria,
+        "Dar de Baja",
+        `Dio de baja el Alta #${alta.idAltaHospitalaria} de la Admisión#${alta.admisionId}`,
+        `/altaHospitalarias?estado=${alta.visible==1? 'activos':'inactivos'}&qPaciente=${admision.Paciente.dni}`,
+        null
+    );
+
     return res.json({ ok: true });
   } catch (err) {
     return res.json({ ok: false, error: "Error al dar de baja" });
@@ -129,10 +166,33 @@ export const darDeBaja = async (req, res) => {
 
 export const darDeAlta = async (req, res) => {
   try {
+    const alta = await AltaHospitalaria.findByPk(req.params.id);
+
+    if (!alta)
+      return res.json({ ok: false, error: "No se encontro el Alta Hospitalaria" });
+
+    const admision = await Admision.findByPk(alta.admisionId, {
+      include: [ { model: Paciente, as: 'Paciente' } ]
+    });
+
+    if (!admision)
+      return res.json({ ok: false, error: "Error Admisión no encontrada" });
+
     await AltaHospitalaria.update(
       { visible: 1 },
       { where: { idAltaHospitalaria: req.params.id } }
     );
+
+    await auditar(
+        req.session.user.id,
+        "Alta Hospitalaria",
+        alta.idAltaHospitalaria,
+        "Dar de Alta",
+        `Dio de alta el Alta #${alta.idAltaHospitalaria} de la Admisión#${alta.admisionId}`,
+        `/altaHospitalarias?estado=${alta.visible==1? 'activos':'inactivos'}&qPaciente=${admision.Paciente.dni}`,
+        null
+    );
+
     return res.json({ ok: true });
   } catch (err) {
     return res.json({ ok: false, error: "Error al dar de alta" });

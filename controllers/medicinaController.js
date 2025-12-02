@@ -1,4 +1,5 @@
 import { EvaluacionMedica } from '../models/index.js';
+import { auditar } from '../controllers/auditoriaController.js';
 
 export const crear = async (req, res) => {
   if (!req.session.user)
@@ -12,7 +13,7 @@ export const crear = async (req, res) => {
   } = req.body;
 
   try {
-    await EvaluacionMedica.create({
+    const evaluacion = await EvaluacionMedica.create({
         diagnostico,
         indicaciones,
         medicacion,
@@ -22,6 +23,16 @@ export const crear = async (req, res) => {
         admisionId,
         medicoId
     });
+
+    await auditar(
+        req.session.user.id,
+        "Evaluación Médica",
+        evaluacion.idEvalaucionMed,
+        "Crear",
+        `Creó la Evaluación Médica#${evaluacion.idEvalaucionMed} para la admision#${evaluacion.admisionId}`,
+        `/admisiones/detalle/${evaluacion.admisionId}?&estadoMed=${evaluacion.visible==1? 'activos':'inactivos'}`,
+        null
+    );
 
     return res.json({ ok: true });
   } catch (error) {
@@ -48,6 +59,17 @@ export const darDeBaja = async (req, res) => {
       { visible: 0 },
       { where: { idEvaluacionMed: req.params.id } }
     );
+
+    await auditar(
+        req.session.user.id,
+        "Evaluación Médica",
+        evaluacion.idEvalaucionMed,
+        "Dar de Baja",
+        `Dio de baja la Evaluación Médica#${evaluacion.idEvalaucionMed} de la admision#${evaluacion.admisionId}`,
+        `/admisiones/detalle/${evaluacion.admisionId}?&estadoMed=${evaluacion.visible==1? 'activos':'inactivos'}`,
+        null
+    );
+
     return res.json({ ok: true });
   } catch (err) {
     return res.json({ ok: false, error: "Error al dar de baja" });
@@ -73,6 +95,17 @@ export const darDeAlta = async (req, res) => {
       { visible: 1 },
       { where: { idEvaluacionMed: req.params.id } }
     );
+
+    await auditar(
+        req.session.user.id,
+        "Evaluación Médica",
+        evaluacion.idEvalaucionMed,
+        "Dar de Alta",
+        `Dio de alta la Evaluación Médica#${evaluacion.idEvalaucionMed} de la admision#${evaluacion.admisionId}`,
+        `/admisiones/detalle/${evaluacion.admisionId}?&estadoMed=${evaluacion.visible==1? 'activos':'inactivos'}`,
+        null
+    );
+
     return res.json({ ok: true });
   } catch (err) {
     return res.json({ ok: false, error: "Error al dar de alta" });

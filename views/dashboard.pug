@@ -1,22 +1,415 @@
 extends layout
 
 block content
-  .mb-3.d-flex.align-items-center
+  // ========== DATOS DEL USUARIO ==========
+  .mb-4.d-flex.align-items-center
     if user.avatar
       img.rounded-circle(
         src=user.avatar
         alt="Perfil"
-        style="width:75px;height:75px;"
+        style="width:120px;height:120px;"
       )
     else
-      //- Inicial del nombre
       - const inicial = user.nombre ? user.nombre[0].toUpperCase() : "?"
       .rounded-circle.bg-primary.text-white.d-flex.align-items-center.justify-content-center(
-        style="width:75px;height:75px;font-size: 42px;"
+        style="width:120px;height:120px;font-size:60px;"
       ) #{inicial}
-    h1.mx-3 Bienvenido, #{user.nombre} #{user.apellido}
-  p.text-muted Rol: #{user.rol}
-  p.text-muted Email: #{user.email}
+
+    .ms-3
+      h2.mb-0 Bienvenido, #{user.nombre} #{user.apellido}
+      p.text-muted.mb-0 Rol: #{user.rol}
+      p.text-muted.mb-1 Email: #{user.email}
+
+      button.btn.btn-success.mt-3(
+        type="button"
+        data-bs-toggle="modal"
+        data-bs-target="#modalEditarUsuario"
+        data-id=user.id
+        data-nombre=user.nombre
+        data-apellido=user.apellido
+        data-email=user.email
+        data-avatar=user.avatar
+      ) Editar Datos de Usuario
+
   hr
 
-  p.mt-4 Bienvenido al sistema HIS de internación. Seleccioná una opción del menú lateral para comenzar.
+  if user.rol=='admin'
+    span.text-muted Eres Administrador:
+    ul.text-muted 
+      li Tienes acceso total al sistema.
+      li Puedes crear, editar y dar de baja Usuarios y Pacientes.
+      li Administras la Estructura del Hospital (Unidades, Alas, Habitaciones, Camas).
+      li Puedes crear, editar y cancelar Admisiones.
+      li Puedes ver todas las Evaluaciones y Altas Hospitalarias.
+      li Puedes dar de baja Altas Hospitalarias (visible=0).
+      li Puedes ver la Auditoría completa del sistema.
+
+  if user.rol=='recepcion'
+    span.text-muted Eres Recepcionista:
+    ul.text-muted 
+      li Puedes crear, editar y dar de baja Pacientes.
+      li Puedes crear Admisiones e internar Pacientes asignándoles una Cama.
+      li Puedes cancelar Admisiones mientras no tengan evaluaciones.
+      li Puedes ver Altas Hospitalarias.
+      li Puedes ver Evaluaciones, pero no editarlas.
+      li Puedes ver toda la Estructura del Hospital.
+
+  if user.rol=='enfermeria'
+    span.text-muted Eres Enfermero/a:
+    ul.text-muted 
+      li Puedes realizar Evaluaciones de Enfermería a Admisiones activas.
+      li Puedes ver Pacientes, Admisiones, Evaluaciones y Altas Hospitalarias.
+      li Puedes cambiar el estado de una Cama a sucia, limpia, libre o mantenimiento.
+      li No puedes crear ni cancelar Admisiones.
+      li No puedes hacer Altas Hospitalarias.
+
+  if user.rol=='medico'
+    span.text-muted Eres Médico:
+    ul.text-muted 
+      li Puedes realizar Evaluaciones Médicas a Admisiones activas.
+      li Puedes realizar Altas Hospitalarias para finalizar Admisiones.
+      li Puedes ver Pacientes, Estructura del Hospital y toda la información clínica.
+      li Puedes identificar Pacientes NN y asociarlos a su paciente real.
+      li No puedes crear ni cancelar Admisiones.
+      li No puedes modificar la Estructura del Hospital.
+
+  // ========== ACCIONES RECIENTES ==========
+  h4.mt-4 Acciones recientes
+
+  form#formFiltros(method="GET" action="/users/inicio" class="d-flex flex-wrap gap-3 mt-3")
+
+    // ---- Select Accion ----
+    select.form-control(name="accion" style="width:200px;")
+      option(value='' selected=accion=='') De todas las acciones
+      option(value='Crear' selected=accion=='Crear') Crear
+      option(value='Editar' selected=accion=='Editar') Editar
+      option(value='Dar de Baja' selected=accion=='Dar de Baja') Dar de Baja
+      option(value='Dar de Alta' selected=accion=='Dar de Alta') Dar de Alta
+      option(value='Cambiar Estado' selected=accion=='Cambiar Estado') Cambiar Estado
+      if user.rol=='medico'
+        option(value='Identificar' selected=accion=='Identificar') Identificar
+
+    // ---- Select Entidad ----
+    select.form-control(name="entidad" style="width:200px;")
+      option(value='' selected=entidad=='') De todas las entidades
+      if user.rol=='admin'
+        option(value='Usuario' selected=entidad=='Usuario') Usuario
+      option(value='Paciente' selected=entidad=='Paciente') Paciente
+      if ['admin','recepcion','medico'].includes(user.rol)
+        option(value='Admision' selected=entidad=='Admision') Admisión
+      if user.rol=='enfermeria'
+        option(value='Evaluacion de Enfermeria' selected=entidad=='Evaluacion de Enfermeria') Evaluación de Enfermería
+      if user.rol=='medico'
+        option(value='Evaluacion Medica' selected=entidad=='Evaluacion Medica') Evaluación Médica
+        option(value='Alta Hospitalaria' selected=entidad=='Alta Hospitalaria') Alta Hospitalaria
+      if user.rol=='admin'
+        option(value='Unidad' selected=entidad=='Unidad') Unidad
+        option(value='Ala' selected=entidad=='Ala') Ala
+        option(value='Habitacion' selected=entidad=='Habitacion') Habitación
+      if ['admin','enfermeria'].includes(user.rol)
+        option(value='Cama' selected=entidad=='Cama') Cama
+
+    // ---- Filtro por fechas ----
+    .d-flex.mx-2.gap-3
+      input.form-control(
+        type="date"
+        name="fecha1"
+        style="width:150px;"
+        value=fecha1 || ''
+      )
+      p.text-muted.mt-2 a
+      input.form-control(
+        type="date"
+        name="fecha2"
+        style="width:150px;"
+        value=fecha2 || ''
+      )
+
+    input(type="hidden" name="accionAdmin" value=accionAdmin)
+    input(type="hidden" name="entidadAdmin" value=entidadAdmin)
+    input(type="hidden" name="fecha1Admin" value=fecha1Admin)
+    input(type="hidden" name="fecha2Admin" value=fecha2Admin)
+
+    button.btn.btn-outline-primary(type="submit") Buscar
+
+  if recientes.length === 0
+    ul.list-group.mt-2
+      li.list-group-item.bg-light
+        p.mt-3 No hay acciones recientes registradas.
+  else
+    ul.list-group.mt-2
+      each a in recientes
+        li.list-group-item
+          span.text-muted #{a.fechaHora.toLocaleString()}
+          .mx-3.mt-2
+            strong #{a.accion} →
+            |  #{a.descripcion}
+
+            if a.link
+              .d-flex.mt-2.gap-2
+                - const partes = a.entidad.split(' y ')
+                a.btn.btn-sm.btn-info.text-white(href=a.link) Ir a #{partes[0]}
+                if a.linkR
+                  a.btn.btn-sm.btn-info.text-white(href=a.linkR) Ir a #{partes[1]}
+
+    if totalPages > 1
+      nav.mt-4
+        ul.pagination
+          each n in Array(totalPages).fill(0).map((_, i) => i + 1)
+            li.page-item(class=page===n ? "active" : "")
+              a.page-link(
+                href=`/users/inicio?accion=${accion}&entidad=${entidad}&fecha1=${fecha1 || ''}&fecha2=${fecha2 || ''}&page=${n}&accionAdmin=${accionAdmin}&entidadAdmin=${entidadAdmin}&fecha1Admin=${fecha1Admin || ''}&fecha2Admin=${fecha2Admin || ''}&qUsuario=${qUsuario}&pageAdmin=${pageAdmin}`
+              ) #{n}
+
+  .mb-5
+    // ========== ACCIONES DEL SISTEMA (ADMIN) ==========
+    if user.rol === 'admin'
+      hr
+
+      h4.mt-4 Últimas acciones del sistema
+
+      form#formFiltros(method="GET" action="/users/inicio" class="d-flex flex-wrap gap-3 mt-3")
+
+        // ---- Select Accion ----
+        select.form-control(name="accionAdmin" style="width:200px;")
+          option(value='' selected=accionAdmin=='') De todas las acciones
+          option(value='Crear' selected=accionAdmin=='Crear') Crear
+          option(value='Editar' selected=accionAdmin=='Editar') Editar
+          option(value='Dar de Baja' selected=accionAdmin=='Dar de Baja') Dar de Baja
+          option(value='Dar de Alta' selected=accionAdmin=='Dar de Alta') Dar de Alta
+          option(value='Cambiar Estado' selected=accionAdmin=='Cambiar Estado') Cambiar Estado
+          option(value='Identificar' selected=accionAdmin=='Identificar') Identificar
+
+        // ---- Select Entidad ----
+        select.form-control(name="entidadAdmin" style="width:200px;")
+          option(value='' selected=entidadAdmin=='') De todas las entidades
+          option(value='Usuario' selected=entidadAdmin=='Usuario') Usuario
+          option(value='Paciente' selected=entidadAdmin=='Paciente') Paciente
+          option(value='Admision' selected=entidadAdmin=='Admision') Admisión
+          option(value='Evaluacion de Enfermeria' selected=entidadAdmin=='Evaluacion de Enfermeria') Evaluación de Enfermería
+          option(value='Evaluacion Medica' selected=entidadAdmin=='Evaluacion Medica') Evaluación Médica
+          option(value='Alta Hospitalaria' selected=entidadAdmin=='Alta Hospitalaria') Alta Hospitalaria
+          option(value='Unidad' selected=entidadAdmin=='Unidad') Unidad
+          option(value='Ala' selected=entidadAdmin=='Ala') Ala
+          option(value='Habitacion' selected=entidadAdmin=='Habitacion') Habitación
+          option(value='Cama' selected=entidadAdmin=='Cama') Cama
+
+        // ---- Filtro por Nombre, Apellido, Email de Usuario ----
+        input.mx-2.form-control(
+          type="text"
+          name="qUsuario"
+          style="width: 350px;"
+          placeholder="Buscar Usuario por nombre, email o rol..."
+          value=qUsuario
+        )
+
+        // ---- Filtro por fechas ----
+        .d-flex.mx-2.gap-3
+          input.form-control(
+            type="date"
+            name="fecha1Admin"
+            style="width:150px;"
+            value=fecha1Admin || ''
+          )
+          p.text-muted.mt-2 a
+          input.form-control(
+            type="date"
+            name="fecha2Admin"
+            style="width:150px;"
+            value=fecha2Admin || ''
+          )
+        
+        input(type="hidden" name="accion" value=accion)
+        input(type="hidden" name="entidad" value=entidad)
+        input(type="hidden" name="fecha1" value=fecha1)
+        input(type="hidden" name="fecha2" value=fecha2)
+
+        button.btn.btn-outline-primary(type="submit") Buscar
+
+      if recientesSistema.length === 0
+        ul.list-group.mt-2
+          li.list-group-item.bg-light
+            p.mt-3 No hay registros en el sistema.
+      else
+        ul.list-group.mt-2
+          each a in recientesSistema
+            li.list-group-item
+              .d-flex.gap-2.align-items-center
+                if a.Usuario.avatar
+                  img.rounded-circle(
+                    src=a.Usuario.avatar
+                    style="width:32px;height:32px;"
+                  )
+                else
+                  - const ini = a.Usuario.nombre ? a.Usuario.nombre[0].toUpperCase() : "?"
+                  .rounded-circle.bg-primary.text-white.d-flex.align-items-center.justify-content-center(
+                    style="width:32px;height:32px;"
+                  ) #{ini}
+
+                a.text-muted(href=`/usuarios?estado=${a.Usuario.visible?"activos":"inactivos"}&buscar=${a.Usuario.email}`)
+                  | #{a.Usuario.nombre} #{a.Usuario.apellido}
+                  span.text-muted  · ID: #{a.Usuario.idUsuario} · Rol: #{a.Usuario.rol} · #{a.fechaHora.toLocaleString()}
+
+              .mx-3.mt-2
+                strong #{a.accion} →
+                |  #{a.descripcion}
+
+                if a.link
+                  .d-flex.mt-2.gap-2
+                    - const partesS = a.entidad.split(' y ')
+                    a.btn.btn-sm.btn-info.text-white(href=a.link) Ir a #{partesS[0]}
+                    if a.linkR
+                      a.btn.btn-sm.btn-info.text-white(href=a.linkR) Ir a #{partesS[1]}
+
+        if totalPagesAdmin > 1
+          nav.mt-4
+            ul.pagination
+              each n in Array(totalPagesAdmin).fill(0).map((_, i) => i + 1)
+                li.page-item(class=pageAdmin===n ? "active" : "")
+                  a.page-link(
+                    href=`/users/inicio?accion=${accion}&entidad=${entidad}&fecha1=${fecha1 || ''}&fecha2=${fecha2 || ''}&page=${page}&accionAdmin=${accionAdmin}&entidadAdmin=${entidadAdmin}&fecha1Admin=${fecha1Admin || ''}&fecha2Admin=${fecha2Admin || ''}&qUsuario=${qUsuario}&pageAdmin=${n}`
+                  ) #{n}
+
+  //- MODAL EDITAR
+  #modalEditarUsuario.modal.fade(tabindex="-1" aria-hidden="true")
+    .modal-dialog
+      .modal-content
+        .modal-header
+          h5.modal-title Editar Usuario
+          button.btn-close(type="button", data-bs-dismiss="modal")
+
+        .modal-body
+          form#formEditarUsuario
+            input(type="hidden" name="id")
+            input(type="hidden" name="rol")
+
+            .mb-3.text-center
+              img.previewAvatarEditar.rounded-circle.mx-auto(
+                style="width:100px;height:100px;object-fit:cover;display:none;"
+              )
+              .previewAvatarEditarFallback.rounded-circle.bg-primary.text-white.d-flex.align-items-center.justify-content-center.mx-auto(
+                style="width:100px;height:100px;font-size:40px;"
+              ) ?
+              button.btn.btn-danger.mt-2.hideImportant(type="button" id="btnEditarEliminarAvatar") Eliminar avatar
+
+            .mb-3
+              label.form-label Avatar
+              input.form-control(type="file" name="avatar")
+            
+            input(type="hidden" name="flagEliminarAvatar")
+
+            .mb-3
+              label.form-label Nombre
+              input.form-control(name="nombre" required)
+
+            .mb-3
+              label.form-label Apellido
+              input.form-control(name="apellido" required)
+
+            .mb-3
+              label.form-label Email
+              input.form-control(name="email" required)
+
+            .mb-3
+              label.form-label Contraseña
+              input.form-control(name="clave" placeholder="Para no cambiar la clave deje en blanco este campo.")
+
+        .modal-footer
+          button.btn.btn-secondary(type="button" data-bs-dismiss="modal") Cancelar
+          button.btn.btn-primary(type="submit" form="formEditarUsuario") Guardar Cambios
+
+  script.
+    const user = !{JSON.stringify(user)};
+
+    // FUNCIONES GLOBALES DE GUARDAR SCROLL (Dashboard)
+    function guardarScroll() {
+      localStorage.setItem("scrollDashboard", window.scrollY);
+    }
+
+    function restaurarScroll() {
+      const y = localStorage.getItem("scrollDashboard");
+      if (y !== null) {
+        window.scrollTo(0, parseInt(y));
+        localStorage.removeItem("scrollDashboard");
+      }
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      restaurarScroll();
+
+      // Guardar scroll al enviar los filtros del dashboard
+      document.querySelectorAll('form#formFiltros').forEach(form => {
+        form.addEventListener('submit', () => {
+          guardarScroll();
+        });
+      });
+
+      // -------- QUITAR FOCUS DE MODALES SI SE OCULTAN --------
+      document.querySelectorAll('.modal').forEach(modal => {
+        modal.addEventListener("hidden.bs.modal", () => {
+          document.activeElement.blur();
+          document.body.focus();
+        });
+      });
+
+      // -------- EDITAR USUARIO --------
+      const modalEditar = document.getElementById("modalEditarUsuario");
+      const formEditar = document.getElementById("formEditarUsuario");
+      const btnEditarEliminarAvatar = document.getElementById("btnEditarEliminarAvatar");
+
+      if (modalEditar && formEditar && btnEditarEliminarAvatar) {
+        modalEditar.addEventListener("show.bs.modal", (event) => {
+          const button = event.relatedTarget;
+          const loggedId = #{JSON.stringify(user.id)};  // inyectar ID logueado desde Pug
+
+          formEditar.id.value = button.dataset.id;
+          formEditar.nombre.value = button.dataset.nombre;
+          formEditar.apellido.value = button.dataset.apellido;
+          formEditar.email.value = button.dataset.email;
+          formEditar.rol.value = user.rol;
+
+          formEditar.flagEliminarAvatar.value = "false";
+
+          const previewImg = formEditar.querySelector(".previewAvatarEditar");
+          const previewFallback = formEditar.querySelector(".previewAvatarEditarFallback");
+          const avatar = button.dataset.avatar;
+
+          if (avatar) {
+            // tiene avatar → mostrar imagen
+            previewImg.src = avatar;
+            previewImg.style.display = "block";
+            previewFallback.classList.add("hideImportant");
+            previewFallback.classList.remove("d-flex");
+            btnEditarEliminarAvatar.classList.add("showImportant");
+            btnEditarEliminarAvatar.classList.remove("hideImportant");
+          } else {
+            // no tiene avatar → mostrar fallback con inicial
+            const inicial = button.dataset.nombre ? button.dataset.nombre[0].toUpperCase() : "?";
+            previewFallback.textContent = inicial;
+            previewFallback.classList.remove("hideImportant");
+            previewFallback.classList.add("d-flex");
+            previewImg.style.display = "none";
+            btnEditarEliminarAvatar.classList.add("hideImportant");
+            btnEditarEliminarAvatar.classList.remove("showImportant");
+          }
+
+          formEditar.querySelector('input[name="avatar"]').value = "";
+        });
+
+        formEditar.addEventListener("submit", async (e) => {
+          e.preventDefault();
+
+          const data = new FormData(formEditar);
+
+          const res = await fetch(`/usuarios/editar/${data.get("id")}`, {
+            method: "POST",
+            body: data
+          });
+
+          const json = await res.json();
+          if (json.ok) location.reload();
+          else alert(json.error);
+        });
+      }
+
+    });

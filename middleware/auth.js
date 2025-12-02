@@ -24,3 +24,15 @@ export function allowRoles(...roles) {
         next();
     };
 }
+
+export function requireSelfOrAdmin() {
+    return (req, res, next) => {
+        if (!req.session.user) {
+            return res.redirect("/users/login");
+        }
+        if (req.session.user.rol != 'admin' && req.session.user.id!=req.params.id) {
+            return res.status(403).render("error/403", { user: req.session.user });
+        }
+        next();
+    };
+}

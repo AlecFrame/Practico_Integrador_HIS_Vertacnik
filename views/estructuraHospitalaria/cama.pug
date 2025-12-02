@@ -7,17 +7,17 @@ block content
     .d-flex.justify-content-between.align-items-center.mt-3
       .btn-group
         a.btn.btn-outline-primary(
-          href="/camas?estado=todos"
+          href=`/camas?estado=todos&unidadFiltro=${unidadFiltro}&alaFiltro=${alaFiltro}&habitacionFiltro=${habitacionFiltro}&tHF=${tHF}&eCF=${eCF}`
           class=estado==="todos" ? "active" : ""
         ) Todos
 
         a.btn.btn-outline-success(
-          href="/camas?estado=activos"
+          href=`/camas?estado=activos&unidadFiltro=${unidadFiltro}&alaFiltro=${alaFiltro}&habitacionFiltro=${habitacionFiltro}&tHF=${tHF}&eCF=${eCF}`
           class=estado==="activos" ? "active" : ""
         ) Activos
 
         a.btn.btn-outline-secondary(
-          href="/camas?estado=inactivos"
+          href=`/camas?estado=inactivos&unidadFiltro=${unidadFiltro}&alaFiltro=${alaFiltro}&habitacionFiltro=${habitacionFiltro}&tHF=${tHF}&eCF=${eCF}`
           class=estado==="inactivos" ? "active" : ""
         ) Inactivos
 
@@ -134,7 +134,7 @@ block content
         each n in Array(totalPages).fill(0).map((_, i) => i + 1)
           li.page-item(class=page===n ? "active" : "")
             a.page-link(
-              href=`/camas?estado=${estado}&buscar=${buscar}&page=${n}`
+              href=`/camas?estado=${estado}&unidadFiltro=${unidadFiltro}&alaFiltro=${alaFiltro}&habitacionFiltro=${habitacionFiltro}&tHF=${tHF}&eCF=${eCF}&page=${n}`
             ) #{n}
   
   if (user.rol == 'admin')

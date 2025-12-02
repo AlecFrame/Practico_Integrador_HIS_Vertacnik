@@ -14,6 +14,7 @@ const Paciente = sequelize.define('Paciente', {
     sexo: DataTypes.ENUM('M', 'F', 'NN'),
     telefono: DataTypes.STRING(15),
     direccion: DataTypes.STRING,
+    obraSocial: DataTypes.STRING,
     visible: DataTypes.TINYINT
 });
 

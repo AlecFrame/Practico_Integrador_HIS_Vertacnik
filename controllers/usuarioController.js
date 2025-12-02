@@ -2,6 +2,8 @@ import bcrypt from "bcrypt";
 import fs from "fs";
 import path from "path";
 import { Usuario } from '../models/index.js';
+import { auditar } from '../controllers/auditoriaController.js';
+import { agregarCambio } from '../middleware/helper.js';
 import { Op } from "sequelize";
 
 export const listar = async (req, res) => {
@@ -49,7 +51,7 @@ export const crear = async (req, res) => {
     const hash = await bcrypt.hash(clave, 10);
 
     try {
-        await Usuario.create({
+        const usuario = await Usuario.create({
             nombre,
             apellido,
             email,
@@ -58,6 +60,16 @@ export const crear = async (req, res) => {
             visible,
             avatar
         });
+
+        await auditar(
+            req.session.user.id,
+            "Usuario",
+            usuario.idUsuario,
+            "Crear",
+            `Creó al Usuario#${usuario.idUsuario} ${usuario.nombre} ${usuario.apellido} con el rol ${usuario.rol}`,
+            `/usuarios?estado=${usuario.visible? 'activos':'inactivos'}&buscar=${usuario.email}`,
+            null
+        );
 
         return res.json({ ok: true });
     } catch (error) {
@@ -70,9 +82,19 @@ export const actualizar = async (req, res) => {
 
     try {
         const usuario = await Usuario.findByPk(req.params.id);
+
         if (!usuario) {
             return res.json({ ok: false, error: "Usuario no encontrado" });
         }
+
+        const usuarioAntes = {
+          nombre: usuario.nombre, 
+          apellido: usuario.apellido, 
+          email: usuario.email, 
+          rol: usuario.rol, 
+          clave: usuario.clave, 
+          avatar: usuario.avatar
+        };
 
         // ----------- CLAVE -----------
         if (!clave || clave.trim() === "") {
@@ -123,8 +145,29 @@ export const actualizar = async (req, res) => {
             req.session.user.avatar = avatar;
         }
 
-        return res.json({ ok: true });
+        const cambios = [];
+        agregarCambio(cambios, "nombre", usuarioAntes.nombre, nombre);
+        agregarCambio(cambios, "apellido", usuarioAntes.apellido, apellido);
+        agregarCambio(cambios, "email", usuarioAntes.email, email);
+        agregarCambio(cambios, "rol", usuarioAntes.rol, rol);
+        agregarCambio(cambios, "avatar", usuarioAntes.avatar, flagEliminarAvatar? "Se eliminó":avatar);
+        agregarCambio(cambios, "clave", usuarioAntes.clave, clave);
+  
+        const descripcion = cambios.length > 0
+          ? `Cambios: ${cambios.join(", ")}`
+          : "No hubo cambios en los datos";
+        
+        await auditar(
+            req.session.user.id,
+            "Usuario",
+            usuario.idUsuario,
+            "Editar",
+            descripcion,
+            `/usuarios?estado=${usuario.visible==1? 'activos':'inactivos'}&buscar=${email}`,
+            null
+        )
 
+        return res.json({ ok: true });
     } catch (error) {
         console.log(error);
         return res.json({ ok: false, error: "Error al actualizar usuario" });
@@ -133,10 +176,26 @@ export const actualizar = async (req, res) => {
 
 export const darDeBaja = async (req, res) => {
   try {
+    const usuario = await Usuario.findByPk(req.params.id);
+
+    if (!usuario)
+      return res.json({ ok: false, error: "No se encontro al Usuario" });
+    
     await Usuario.update(
       { visible: 0 },
       { where: { idUsuario: req.params.id } }
     );
+
+    await auditar(
+        req.session.user.id,
+        "Usuario",
+        usuario.idUsuario,
+        "Dar de Baja",
+        `Dio de baja al Usuario#${usuario.idUsuario} ${usuario.nombre} ${usuario.apellido}`,
+        `/usuarios?estado=${usuario.visible? 'activos':'inactivos'}&buscar=${usuario.email}`,
+        null
+    );
+
     return res.json({ ok: true });
   } catch (err) {
     return res.json({ ok: false, error: "Error al dar de baja" });
@@ -145,10 +204,26 @@ export const darDeBaja = async (req, res) => {
 
 export const darDeAlta = async (req, res) => {
   try {
+    const usuario = await Usuario.findByPk(req.params.id);
+
+    if (!usuario)
+      return res.json({ ok: false, error: "No se encontro al Usuario" });
+
     await Usuario.update(
       { visible: 1 },
       { where: { idUsuario: req.params.id } }
     );
+
+    await auditar(
+        req.session.user.id,
+        "Usuario",
+        usuario.idUsuario,
+        "Dar de Alta",
+        `Dio de alta al Usuario#${usuario.idUsuario} ${usuario.nombre} ${usuario.apellido}`,
+        `/usuarios?estado=${usuario.visible? 'activos':'inactivos'}&buscar=${usuario.email}`,
+        null
+    );
+
     return res.json({ ok: true });
   } catch (err) {
     return res.json({ ok: false, error: "Error al dar de alta" });

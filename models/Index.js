@@ -9,6 +9,7 @@ import Cama from './Cama.js';
 import EvaluacionEnfermeria from './EvaluacionEnfermeria.js';
 import EvaluacionMedica from './EvaluacionMedica.js';
 import AltaHospitalaria from './AltaHospitalaria.js';
+import Auditoria from './Auditoria.js';
 
 // ---------- RELACIONES ----------
 
@@ -52,6 +53,10 @@ AltaHospitalaria.belongsTo(Admision, { foreignKey: 'admisionId' });
 Usuario.hasMany(AltaHospitalaria, { foreignKey: 'medicoId' });
 AltaHospitalaria.belongsTo(Usuario, { foreignKey: 'medicoId' });
 
+// Auditoria
+
+Usuario.hasMany(Auditoria, { foreignKey: 'usuarioId' });
+Auditoria.belongsTo(Usuario, { foreignKey: 'usuarioId' });
 
 // Exportar
 export {
@@ -65,5 +70,6 @@ export {
     Cama,
     EvaluacionEnfermeria,
     EvaluacionMedica,
-    AltaHospitalaria
+    AltaHospitalaria,
+    Auditoria
 };

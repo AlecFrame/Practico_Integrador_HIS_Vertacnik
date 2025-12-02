@@ -1,4 +1,6 @@
 import { Unidad, Ala } from '../models/index.js';
+import { auditar } from '../controllers/auditoriaController.js';
+import { agregarCambio } from '../middleware/helper.js';
 import { Op } from "sequelize";
 
 export const listar = async (req, res) => {
@@ -50,13 +52,28 @@ export const crear = async (req, res) => {
     const { nombre, unidadId, visible=1 } = req.body;
 
     try {
-        await Ala.create({
-            nombre,
-            unidadId,
-            visible
-        });
+      const unidad = await Unidad.findByPk(unidadId);
 
-        return res.json({ ok: true });
+      if (!unidad)
+        return res.json({ ok: false, error: "No se encontro la unidad" });
+
+      const ala = await Ala.create({
+          nombre,
+          unidadId,
+          visible
+      });
+
+      await auditar(
+          req.session.user.id,
+          "Ala",
+          ala.idAla,
+          "Crear",
+          `Creó el Ala#${ala.idAla}: ${ala.nombre} para ${unidad.nombre}`,
+          `/alas?estado=${ala.visible? 'activos':'inactivos'}&unidadFiltro=${ala.unidadId}`,
+          null
+      );
+
+      return res.json({ ok: true });
     } catch (error) {
         return res.json({ ok: false, error: "Error al crear ala" });
     }
@@ -66,23 +83,69 @@ export const actualizar = async (req, res) => {
     const { nombre, unidadId } = req.body;
 
     try {
-        await Ala.update(
-            { nombre, unidadId },
-            { where: { idAla: req.params.id } }
-        );
+      const ala = await Ala.findByPk(req.params.id);
+      
+      if (!ala)
+        return res.json({ ok: false, error: "No se encontro el Ala" });
+      
+      const alaAntes = {
+        nombre: ala.nombre, 
+        unidadId: ala.unidadId,
+      };
 
-        return res.json({ ok: true });
+      await Ala.update(
+          { nombre, unidadId },
+          { where: { idAla: req.params.id } }
+      );
+
+      const cambios = [];
+      agregarCambio(cambios, "nombre", alaAntes.nombre, nombre);
+      agregarCambio(cambios, "unidadId", alaAntes.unidadId, unidadId);
+  
+      const descripcion = cambios.length > 0
+        ? `Cambios: ${cambios.join(", ")}`
+        : "No hubo cambios en los datos";
+      
+      await auditar(
+          req.session.user.id,
+          "Ala",
+          ala.idAla,
+          "Editar",
+          descripcion,
+          `/alas?estado=${ala.visible? 'activos':'inactivos'}&unidadFiltro=${ala.unidadId}`,
+          null
+      );
+
+      return res.json({ ok: true });
     } catch (error) {
-        return res.json({ ok: false, error: 'Error al actualizar ala' });
+      return res.json({ ok: false, error: 'Error al actualizar ala' });
     }
 };
 
 export const darDeBaja = async (req, res) => {
   try {
+    const ala = await Ala.findByPk(req.params.id, {
+      include: [{ model: Unidad, as: 'Unidad' }]
+    });
+
+    if (!ala)
+      return res.json({ ok: false, error: "No se encontro el Ala" });
+
     await Ala.update(
       { visible: 0 },
       { where: { idAla: req.params.id } }
     );
+
+    await auditar(
+        req.session.user.id,
+        "Ala",
+        ala.idAla,
+        "Dar de Baja",
+        `Dio de baja el Ala#${ala.idAla}: ${ala.nombre} de ${ala.Unidad.nombre}`,
+        `/alas?estado=${ala.visible? 'activos':'inactivos'}&unidadFiltro=${ala.unidadId}`,
+        null
+    );
+
     return res.json({ ok: true });
   } catch (err) {
     return res.json({ ok: false, error: "Error al dar de baja" });
@@ -91,10 +154,28 @@ export const darDeBaja = async (req, res) => {
 
 export const darDeAlta = async (req, res) => {
   try {
+    const ala = await Ala.findByPk(req.params.id, {
+      include: [{ model: Unidad, as: 'Unidad' }]
+    });
+
+    if (!ala)
+      return res.json({ ok: false, error: "No se encontro el Ala" });
+
     await Ala.update(
       { visible: 1 },
       { where: { idAla: req.params.id } }
     );
+
+    await auditar(
+        req.session.user.id,
+        "Ala",
+        ala.idAla,
+        "Dar de Alta",
+        `Dio de alta el Ala#${ala.idAla}: ${ala.nombre} de ${ala.Unidad.nombre}`,
+        `/alas?estado=${ala.visible? 'activos':'inactivos'}&unidadFiltro=${ala.unidadId}`,
+        null
+    );
+
     return res.json({ ok: true });
   } catch (err) {
     return res.json({ ok: false, error: "Error al dar de alta" });

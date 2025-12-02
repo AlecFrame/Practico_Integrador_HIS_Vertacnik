@@ -7,17 +7,17 @@ block content
     .d-flex.justify-content-between.align-items-center.mt-3
       .btn-group
         a.btn.btn-outline-primary(
-          href="/alas?estado=todos"
+          href=`/alas?estado=todos&unidadFiltro=${unidadFiltro}`
           class=estado==="todos" ? "active" : ""
         ) Todos
 
         a.btn.btn-outline-success(
-          href="/alas?estado=activos"
+          href=`/alas?estado=activos&unidadFiltro=${unidadFiltro}`
           class=estado==="activos" ? "active" : ""
         ) Activos
 
         a.btn.btn-outline-secondary(
-          href="/alas?estado=inactivos"
+          href=`/alas?estado=inactivos&unidadFiltro=${unidadFiltro}`
           class=estado==="inactivos" ? "active" : ""
         ) Inactivos
 
@@ -100,7 +100,7 @@ block content
         each n in Array(totalPages).fill(0).map((_, i) => i + 1)
           li.page-item(class=page===n ? "active" : "")
             a.page-link(
-              href=`/alas?estado=${estado}&buscar=${buscar}&page=${n}`
+              href=`/alas?estado=${estado}&unidadFiltro=${unidadFiltro}&page=${n}`
             ) #{n}
   
   if (user.rol == 'admin')
