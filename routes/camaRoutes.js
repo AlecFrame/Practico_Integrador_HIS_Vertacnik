@@ -1,5 +1,6 @@
 import express from 'express';
 import { requireLogin, allowRoles } from '../middleware/auth.js';
+import { validarCama, validarConsistenciaDeCamas } from '../middleware/validations.js';
 import {
     listar, crear, actualizar, darDeBaja, darDeAlta, filtrarAlas, filtrarHabitaciones, cambiarEstado
 } from '../controllers/camaController.js';
@@ -19,8 +20,8 @@ router.post('/cambiarEstado/:id&:estado', cambiarEstado);
 
 router.use(allowRoles('admin'));
 
-router.post('/crear', crear);
-router.post('/editar/:id', actualizar);
+router.post('/crear', validarCama, validarConsistenciaDeCamas, crear);
+router.post('/editar/:id', validarCama, validarConsistenciaDeCamas, actualizar);
 router.post('/baja/:id', darDeBaja);
 router.post('/alta/:id', darDeAlta);
 

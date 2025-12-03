@@ -199,7 +199,7 @@ block content
                       data-temp=e.signosVitales.temperatura
                       data-plan=e.planCuidados
                     ) Ver
-                    if (user.rol=='enfermero' && user.id == e.Usuario.idUsuario)
+                    if (user.rol=='enfermeria' && user.id == e.Usuario.idUsuario)
                       if admision.estado == 'activa'
                         if e.visible == 1
                           button.btn.btn-sm.btn-danger.mx-1(
@@ -518,24 +518,24 @@ block content
               .row
                 .col-md-6.mb-3
                   label.form-label Historial Médico
-                  textarea.form-control(name="historialMedico" rows="2" required)
+                  textarea.form-control(name="historialMedico" rows="2")
 
                 .col-md-6.mb-3
                   label.form-label Antecedentes
-                  textarea.form-control(name="antecedentes" rows="2" required)
+                  textarea.form-control(name="antecedentes" rows="2")
 
               .row
                 .col-md-6.mb-3
                   label.form-label Alergias
-                  textarea.form-control(name="alergias" rows="2" required)
+                  textarea.form-control(name="alergias" rows="2")
 
                 .col-md-6.mb-3
                   label.form-label Medicación Actual
-                  textarea.form-control(name="medicacionActual" rows="2" required)
+                  textarea.form-control(name="medicacionActual" rows="2")
 
               .mb-3
                 label.form-label Síntomas
-                textarea.form-control(name="sintomas" rows="2" required)
+                textarea.form-control(name="sintomas" rows="2")
 
               hr
 
@@ -544,30 +544,30 @@ block content
               .row
                 .col-md-4.mb-3
                   label.form-label Presión Sistólica (mmHg)
-                  input.form-control(type="number" min="0" name="presionSistolica" required)
+                  input.form-control(type="number" min="0" name="presionSistolica")
 
                 .col-md-4.mb-3
                   label.form-label Presión Diastólica (mmHg)
-                  input.form-control(type="number" min="0" name="presionDiastolica" required)
+                  input.form-control(type="number" min="0" name="presionDiastolica")
 
                 .col-md-4.mb-3
                   label.form-label Frecuencia Cardíaca (lpm)
-                  input.form-control(type="number" min="0" name="frecuenciaCardiaca" required)
+                  input.form-control(type="number" min="0" name="frecuenciaCardiaca")
 
               .row
                 .col-md-6.mb-3
                   label.form-label Frecuencia Respiratoria (rpm)
-                  input.form-control(type="number" min="0" name="frecuenciaRespiratoria" required)
+                  input.form-control(type="number" min="0" name="frecuenciaRespiratoria")
 
                 .col-md-6.mb-3
                   label.form-label Temperatura (°C)
-                  input.form-control(type="number" step="0.1" min="30" max="43" name="temperatura" required)
+                  input.form-control(type="number" step="0.1" min="30" max="43" name="temperatura")
 
               hr
 
               h6.mb-3.text-primary Plan de Cuidados
               .mb-3
-                textarea.form-control(name="planCuidados" rows="3" required)
+                textarea.form-control(name="planCuidados" rows="3")
 
           .modal-footer
             button.btn.btn-secondary(type="button" data-bs-dismiss="modal") Cancelar
@@ -604,19 +604,19 @@ block content
 
               .mb-3
                 label.form-label Diagnóstico
-                textarea.form-control(name="diagnostico" rows="2" required)
+                textarea.form-control(name="diagnostico" rows="2")
 
               .mb-3
                 label.form-label Indicaciones
-                textarea.form-control(name="indicaciones" rows="2" required)
+                textarea.form-control(name="indicaciones" rows="2")
 
               .mb-3
                 label.form-label Medicación
-                textarea.form-control(name="medicacion" rows="2" required)
+                textarea.form-control(name="medicacion" rows="2")
 
               .mb-3
                 label.form-label Terapias
-                textarea.form-control(name="terapias" rows="2" required)
+                textarea.form-control(name="terapias" rows="2")
 
           .modal-footer
             button.btn.btn-secondary(type="button" data-bs-dismiss="modal") Cancelar
@@ -652,15 +652,15 @@ block content
 
               .mb-3
                 label.form-label Diagnóstico Final
-                textarea.form-control(name="diagnosticoFinal" rows="2" required)
+                textarea.form-control(name="diagnosticoFinal" rows="2")
 
               .mb-3
                 label.form-label Indicaciones de Alta
-                textarea.form-control(name="indicacionesAlta" rows="2" required)
+                textarea.form-control(name="indicacionesAlta" rows="2")
 
               .mb-3
                 label.form-label Seguimiento Futuro
-                textarea.form-control(name="seguimientoFuturo" rows="2" required)
+                textarea.form-control(name="seguimientoFuturo" rows="2")
 
           .modal-footer
             button.btn.btn-secondary(type="button" data-bs-dismiss="modal") Cancelar
@@ -694,19 +694,19 @@ block content
               #formCrearPaciente
                 .mb-3
                   label.form-label Nombre
-                  input.form-control(name="nombre" required)
+                  input.form-control(name="nombre")
 
                 .mb-3
                   label.form-label Apellido
-                  input.form-control(name="apellido" required)
+                  input.form-control(name="apellido")
 
                 .mb-3
                   label.form-label DNI
-                  input.form-control(name="dni" required)
+                  input.form-control(name="dni")
 
                 .mb-3
                   label.form-label Fecha de Nacimiento
-                  input.form-control(type="date" name="fechaNacimiento" required)
+                  input.form-control(type="date" name="fechaNacimiento")
 
                 .mb-3
                   label.form-label Sexo
@@ -749,7 +749,6 @@ block content
             button.btn.btn-danger#btnBajaAdmision(type="button") Confirmar
 
 
-  
   script.
     // FUNCIONES GLOBALES DE GUARDAR SCROLL
     function guardarScroll() {
@@ -782,6 +781,12 @@ block content
 
     document.addEventListener("DOMContentLoaded", () => {
       restaurarScroll();
+      
+      // --------- Limpiador de errores toast de los formularios ---------------
+      activarLimpiadorErrores(document.querySelector("#formCrearEnf"));
+      activarLimpiadorErrores(document.querySelector("#formCrearMed"));
+      activarLimpiadorErrores(document.querySelector("#formCrearAlta"));
+      activarLimpiadorErrores(document.querySelector("#formIdentificar"));
 
       // -------- QUITAR FOCUS DE MODALES SI SE OCULTAN --------
       document.querySelectorAll('.modal').forEach(modal => {
@@ -869,6 +874,8 @@ block content
       if (formCrearEnf) {
         formCrearEnf.addEventListener("submit", async (e) => {
           e.preventDefault();
+          removeToasts();
+
           const data = Object.fromEntries(new FormData(formCrearEnf));
 
           const res = await fetch("/enfermeria/crear", {
@@ -882,7 +889,10 @@ block content
             localStorage.setItem("scrollAdmision", window.scrollY);
             location.reload();
           }
-          else alert(json.error);
+          else {
+            toast(json.error, formCrearEnf[json.field], "error");
+            return;
+          }
         });
       }
 
@@ -892,6 +902,8 @@ block content
       if (formCrearMed) {
         formCrearMed.addEventListener("submit", async (e) => {
           e.preventDefault();
+          removeToasts();
+
           const data = Object.fromEntries(new FormData(formCrearMed));
 
           const res = await fetch("/medicina/crear", {
@@ -905,7 +917,10 @@ block content
             localStorage.setItem("scrollAdmision", window.scrollY);
             location.reload();
           }
-          else alert(json.error);
+          else {
+            toast(json.error, formCrearMed[json.field], "error");
+            return;
+          }
         });
       }
 
@@ -915,6 +930,8 @@ block content
       if (formCrearAlta) {
         formCrearAlta.addEventListener("submit", async (e) => {
           e.preventDefault();
+          removeToasts();
+
           const data = Object.fromEntries(new FormData(formCrearAlta));
 
           const res = await fetch("/altaHospitalarias/crear", {
@@ -928,7 +945,10 @@ block content
             localStorage.setItem("scrollAdmision", window.scrollY);
             location.reload();
           }
-          else alert(json.error);
+          else {
+            toast(json.error, formCrearAlta[json.field], "error");
+            return;
+          }
         });
       }
 
@@ -1111,15 +1131,6 @@ block content
           const checked = formIdentificar.existente.checked
 
           formIdentificar.pacienteId.disabled = !checked;
-          formIdentificar.pacienteId.required = checked;
-
-          formIdentificar.nombre.required = !checked;
-          formIdentificar.apellido.required = !checked;
-          formIdentificar.dni.required = !checked;
-          formIdentificar.fechaNacimiento.required = !checked;
-          formIdentificar.sexo.required = !checked;
-          formIdentificar.telefono.required = !checked;
-          formIdentificar.direccion.required = !checked;
 
           if (checked) {
             formCrearPaciente.classList.add("hideImportant");
@@ -1132,6 +1143,8 @@ block content
 
         formIdentificar.addEventListener("submit", async (e) => {
           e.preventDefault();
+          removeToasts();
+
           const data = Object.fromEntries(new FormData(formIdentificar));
 
           if (formIdentificar.existente.checked) {
@@ -1143,7 +1156,10 @@ block content
 
             const json = await res.json();
             if (json.ok) location.reload();
-            else alert(json.error);
+            else {
+              toast(json.error, formIdentificar[json.field], "error");
+              return;
+            }
           }else {
             const res = await fetch("/pacientes/crear", {
               method: "POST",
@@ -1153,7 +1169,10 @@ block content
 
             const json = await res.json();
             if (json.ok) location.reload();
-            else alert(json.error);
+            else {
+              toast(json.error, formIdentificar[json.field], "error");
+              return;
+            }
           }
         });
       }

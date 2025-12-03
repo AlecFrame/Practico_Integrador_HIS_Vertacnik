@@ -147,10 +147,7 @@ block content
 
             if a.link
               .d-flex.mt-2.gap-2
-                - const partes = a.entidad.split(' y ')
-                a.btn.btn-sm.btn-info.text-white(href=a.link) Ir a #{partes[0]}
-                if a.linkR
-                  a.btn.btn-sm.btn-info.text-white(href=a.linkR) Ir a #{partes[1]}
+                a.btn.btn-sm.btn-info.text-white(href=a.link) Ir a #{a.entidad}
 
     if totalPages > 1
       nav.mt-4
@@ -256,19 +253,23 @@ block content
 
                 if a.link
                   .d-flex.mt-2.gap-2
-                    - const partesS = a.entidad.split(' y ')
-                    a.btn.btn-sm.btn-info.text-white(href=a.link) Ir a #{partesS[0]}
-                    if a.linkR
-                      a.btn.btn-sm.btn-info.text-white(href=a.linkR) Ir a #{partesS[1]}
+                    a.btn.btn-sm.btn-info.text-white(href=a.link) Ir a #{a.entidad}
 
         if totalPagesAdmin > 1
-          nav.mt-4
-            ul.pagination
-              each n in Array(totalPagesAdmin).fill(0).map((_, i) => i + 1)
-                li.page-item(class=pageAdmin===n ? "active" : "")
-                  a.page-link(
-                    href=`/users/inicio?accion=${accion}&entidad=${entidad}&fecha1=${fecha1 || ''}&fecha2=${fecha2 || ''}&page=${page}&accionAdmin=${accionAdmin}&entidadAdmin=${entidadAdmin}&fecha1Admin=${fecha1Admin || ''}&fecha2Admin=${fecha2Admin || ''}&qUsuario=${qUsuario}&pageAdmin=${n}`
-                  ) #{n}
+          .d-flex.align-items-center.gap-2.mt-3
+            if pageAdmin===1 
+              span.btn.text-white(style="background-color: #AAAAAA") Anterior
+            else
+              a.btn.btn-primary(
+                href=`/users/inicio?accion=${accion}&entidad=${entidad}&fecha1=${fecha1 || ''}&fecha2=${fecha2 || ''}&page=${page}&accionAdmin=${accionAdmin}&entidadAdmin=${entidadAdmin}&fecha1Admin=${fecha1Admin || ''}&fecha2Admin=${fecha2Admin || ''}&qUsuario=${qUsuario}&pageAdmin=${pageAdmin-1}`
+              ) Anterior
+            span Página #{pageAdmin} de #{totalPagesAdmin}
+            if pageAdmin===totalPagesAdmin
+              span.btn.text-white(style="background-color: #AAAAAA") Siguiente
+            else 
+              a.btn.btn-primary(
+                href=`/users/inicio?accion=${accion}&entidad=${entidad}&fecha1=${fecha1 || ''}&fecha2=${fecha2 || ''}&page=${page}&accionAdmin=${accionAdmin}&entidadAdmin=${entidadAdmin}&fecha1Admin=${fecha1Admin || ''}&fecha2Admin=${fecha2Admin || ''}&qUsuario=${qUsuario}&pageAdmin=${pageAdmin+1}`
+              ) Siguiente
 
   //- MODAL EDITAR
   #modalEditarUsuario.modal.fade(tabindex="-1" aria-hidden="true")
@@ -336,10 +337,25 @@ block content
 
     document.addEventListener("DOMContentLoaded", () => {
       restaurarScroll();
+      
+      // --------- Limpiador de errores toast de los formularios ---------------
+      activarLimpiadorErrores(document.querySelector("#formEditarUsuario"));
 
       // Guardar scroll al enviar los filtros del dashboard
       document.querySelectorAll('form#formFiltros').forEach(form => {
         form.addEventListener('submit', () => {
+          guardarScroll();
+        });
+      });
+
+      document.querySelectorAll('a.page-link').forEach(a => {
+        a.addEventListener('click', () => {
+          guardarScroll();
+        });
+      });
+
+      document.querySelectorAll('a.btn').forEach(a => {
+        a.addEventListener('click', () => {
           guardarScroll();
         });
       });
@@ -398,6 +414,7 @@ block content
 
         formEditar.addEventListener("submit", async (e) => {
           e.preventDefault();
+          removeToasts();
 
           const data = new FormData(formEditar);
 
@@ -408,7 +425,10 @@ block content
 
           const json = await res.json();
           if (json.ok) location.reload();
-          else alert(json.error);
+          else {
+            toast(json.error, formEditar[json.field], "error");
+            return;
+          }
         });
       }
 

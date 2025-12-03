@@ -113,7 +113,7 @@ export const crear = async (req, res) => {
             admision.idAdmision,
             "Crear",
             `Creó la Admisión#${admision.idAdmision} para internar al paciente#${paciente.idPaciente}  ${paciente.nombre} ${paciente.apellido} en la Cama#${cama.numero}`,
-            `/admisiones?estado=${admision.estado}&tIF=${admision.tipoIngreso}`,
+            `/admisiones/detalle/${admision.idAdmision}`,
             null
         );
 
@@ -192,8 +192,8 @@ export const crearNoIdentificado = async (req, res) => {
           admision.idAdmision,
           "Crear",
           `Creó la Admisión#${admision.idAdmision} para internar al paciente NN-${pacienteId} no identificado en la Cama#${cama.numero}`,
-          `/admisiones?estado=${admision.estado}&tIF=${admision.tipoIngreso}`,
-          null
+          `/admisiones/detalle/${admision.idAdmision}`,
+          `/pacientes?estado=${pacienteNN.estado}&buscar=${pacienteNN.dni}`
       );
 
       return res.json({ ok: true });
@@ -225,7 +225,7 @@ export const darDeBaja = async (req, res) => {
         admision.idAdmision,
         "Dar de Baja",
         `Dio de baja la Admisión#${admision.idAdmision}`,
-        `/admisiones?estado=${admision.estado}&tIF=${admision.tipoIngreso}`,
+        `/admisiones/detalle/${admision.idAdmision}`,
         null
     );
     return res.json({ ok: true });
@@ -262,13 +262,28 @@ export const cambiarEstado = async (req, res) => {
       )
     }
 
+    if (nuevoEstado=='cancelada') {
+      const paciente = await Paciente.findByPk(admision.pacienteId);
+
+      if (!paciente) {
+          return res.json({ ok: false, error: 'Paciente no encontrado' });
+      }
+
+      if (paciente.nombre=="NN") {
+        await Paciente.update(
+            { visible: 0 },
+            { where: { idPaciente: admision.pacienteId } }
+        );
+      }
+    }
+
     await auditar(
         req.session.user.id,
         "Admision",
         admision.idAdmision,
         "Cambiar Estado",
         `Cambió el estado de la Admisión#${admision.idAdmision} a ${nuevoEstado} y su Cama#${admision.camaId} asociada a ${camaEstado}`,
-        `/admisiones?estado=${nuevoEstado}&tIF=${admision.tipoIngreso}`,
+        `/admisiones/detalle/${admision.idAdmision}`,
         null
     );
 

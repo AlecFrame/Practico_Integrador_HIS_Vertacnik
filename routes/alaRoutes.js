@@ -1,5 +1,6 @@
 import express from 'express';
 import { requireLogin, allowRoles } from '../middleware/auth.js';
+import { validarAla } from '../middleware/validations.js';
 import {
     listar, crear, actualizar, darDeBaja, darDeAlta
 } from '../controllers/alaController.js';
@@ -13,8 +14,8 @@ router.get('/', listar);
 
 router.use(allowRoles('admin'));
 
-router.post('/crear', crear);
-router.post('/editar/:id', actualizar);
+router.post('/crear', validarAla, crear);
+router.post('/editar/:id', validarAla, actualizar);
 router.post('/baja/:id', darDeBaja);
 router.post('/alta/:id', darDeAlta);
 

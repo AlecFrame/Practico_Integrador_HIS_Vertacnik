@@ -90,7 +90,7 @@ export const crear = async (req, res) => {
               req.session.user.id,
               "Admision y Paciente",
               paciente.idPaciente,
-              "Identificar y Crear",
+              "Identificar",
               `Identificó al NN-${pacienteNNId} de la Admisión #${admisionId} como el nuevo Paciente#${paciente.idPaciente} ${paciente.nombre} ${paciente.apellido}`,
               `/admisiones/detalle/${admisionId}`,
               `/pacientes?estado=${paciente.visible? 'activos':'inactivos'}&buscar=${paciente.dni}`
@@ -259,7 +259,7 @@ export const relacionar = async (req, res) => {
             req.session.user.id,
             "Admision y Paciente",
             pacienteReal.idPaciente,
-            "Identificar y relacionar",
+            "Identificar",
             `Identificó al NN-${pacienteNNId} de la Admisión #${admisionId} como el Paciente#${pacienteReal.idPaciente} ${pacienteReal.nombre} ${pacienteReal.apellido}`,
             `/admisiones/detalle/${admisionId}`,
             `/pacientes?estado=${pacienteReal.visible? 'activos':'inactivos'}&buscar=${pacienteReal.dni}`

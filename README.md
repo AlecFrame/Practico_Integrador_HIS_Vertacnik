@@ -14,6 +14,7 @@ El proyecto es un Sistema de Gestión Hospitalaria (HIS) que permite manejar el 
 * Alta Hospitalaria (cierre de la internación)
 * Control de roles y permisos según el personal
 * Sesiones, vistas en Pug y persistencia con MySQL/Sequelize
+* Auditoria de acciones realizadas en el sistema
 * Todo el sistema funciona según un flujo clínico real donde cada rol tiene permisos específicos.
 
 ## 🚀 Tecnologías utilizadas
@@ -110,6 +111,7 @@ El sistema funciona con 4 roles principales:
 ✔ Administrar usuarios
 ✔ Gestionar pacientes
 ✔ Gestionar infraestructura (Unidades, Alas, Habitaciones, Camas)
+✔ Ver todas las auditorias
 ✔ Ver listado de admisiones
 ❌ No ve evaluaciones
 ❌ No ve detalles clínicos

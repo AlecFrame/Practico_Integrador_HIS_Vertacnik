@@ -1,7 +1,6 @@
 import { Unidad, Ala, Habitacion, Cama } from '../models/index.js';
 import { auditar } from '../controllers/auditoriaController.js';
 import { agregarCambio } from '../middleware/helper.js';
-import { Op } from "sequelize";
 
 export const listar = async (req, res) => {
   const estado = req.query.estado || "activos";
@@ -92,12 +91,13 @@ export const crear = async (req, res) => {
           habitacion.idHabitacion,
           "Crear",
           `Creó la Habitacion#${habitacion.idHabitacion} ${habitacion.numero} (${habitacion.tipo}) para el ${ala.nombre} de ${ala.Unidad.nombre}`,
-          `/habitaciones?estado=${habitacion.visible? 'activos':'inactivos'}&alaFiltro=${habitacion.alaId}&unidadFiltro=${habitacion.Ala.unidadId}&tipoFiltro=${habitacion.tipo}`,
+          `/habitaciones?estado=${habitacion.visible? 'activos':'inactivos'}&alaFiltro=${habitacion.alaId}&unidadFiltro=${ala.unidadId}&tipoFiltro=${habitacion.tipo}`,
           null
       );
 
       return res.json({ ok: true });
     } catch (error) {
+      console.log("Habitacion, error: ", error);
       return res.json({ ok: false, error: "Error al crear habitación" });
     }
 };
@@ -168,7 +168,7 @@ export const actualizar = async (req, res) => {
 
     return res.json({ ok: true });
   } catch (error) {
-      console.log(error);
+      console.log("Habitacion, error: ", error);
       return res.json({ ok: false, error: 'Error al actualizar habitación' });
   }
 };

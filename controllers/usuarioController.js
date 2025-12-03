@@ -150,7 +150,7 @@ export const actualizar = async (req, res) => {
         agregarCambio(cambios, "apellido", usuarioAntes.apellido, apellido);
         agregarCambio(cambios, "email", usuarioAntes.email, email);
         agregarCambio(cambios, "rol", usuarioAntes.rol, rol);
-        agregarCambio(cambios, "avatar", usuarioAntes.avatar, flagEliminarAvatar? "Se eliminó":avatar);
+        agregarCambio(cambios, "avatar", usuarioAntes.avatar, !flagEliminarAvatar? "Se eliminó":avatar);
         agregarCambio(cambios, "clave", usuarioAntes.clave, clave);
   
         const descripcion = cambios.length > 0
@@ -169,7 +169,7 @@ export const actualizar = async (req, res) => {
 
         return res.json({ ok: true });
     } catch (error) {
-        console.log(error);
+        console.log("Usuario error: ", error);
         return res.json({ ok: false, error: "Error al actualizar usuario" });
     }
 };

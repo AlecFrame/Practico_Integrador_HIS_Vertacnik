@@ -122,7 +122,7 @@ block content
 
               .mb-3
                 label.form-label Nombre
-                input.form-control(name="nombre" required)
+                input.form-control(name="nombre")
 
           .modal-footer
             button.btn.btn-secondary(type="button" data-bs-dismiss="modal") Cancelar
@@ -148,7 +148,7 @@ block content
 
               .mb-3
                 label.form-label Nombre
-                input.form-control(name="nombre" required)
+                input.form-control(name="nombre")
 
           .modal-footer
             button.btn.btn-secondary(type="button" data-bs-dismiss="modal") Cancelar
@@ -174,6 +174,10 @@ block content
   script.
     document.addEventListener("DOMContentLoaded", () => {
       
+      // --------- Limpiador de errores toast de los formularios ---------------
+      activarLimpiadorErrores(document.querySelector("#formCrearAla"));
+      activarLimpiadorErrores(document.querySelector("#formEditarAla"));
+      
       // -------- QUITAR FOCUS DE MODALES SI SE OCULTAN --------
       document.querySelectorAll('.modal').forEach(modal => {
         modal.addEventListener("hidden.bs.modal", () => {
@@ -188,6 +192,8 @@ block content
       if (formCrear) {
         formCrear.addEventListener("submit", async (e) => {
           e.preventDefault();
+          removeToasts();
+
           const data = Object.fromEntries(new FormData(formCrear));
 
           const res = await fetch("/alas/crear", {
@@ -198,7 +204,10 @@ block content
 
           const json = await res.json();
           if (json.ok) location.reload();
-          else alert(json.error);
+          else {
+            toast(json.error, formCrear[json.field], "error");
+            return;
+          }
         });
       }
 
@@ -219,6 +228,7 @@ block content
 
         formEditar.addEventListener("submit", async (e) => {
           e.preventDefault();
+          removeToasts();
 
           const data = Object.fromEntries(new FormData(formEditar));
 
@@ -230,7 +240,10 @@ block content
 
           const json = await res.json();
           if (json.ok) location.reload();
-          else alert(json.error);
+          else {
+            toast(json.error, formEditar[json.field], "error");
+            return;
+          }
         });
       }
 

@@ -166,7 +166,7 @@ block content
 
               .mb-3
                 label.form-label Número
-                input.form-control(name="numero" required)
+                input.form-control(name="numero")
 
               .mb-3
                 label.form-label Estado
@@ -227,7 +227,7 @@ block content
 
                 .mb-3
                   label.form-label Número
-                  input.form-control(name="numero" required)
+                  input.form-control(name="numero")
 
               .mb-3
                 label.form-label Estado
@@ -244,6 +244,11 @@ block content
   script.
     document.addEventListener("DOMContentLoaded", () => {
       const user = !{JSON.stringify(user)};
+      
+      // --------- Limpiador de errores toast de los formularios ---------------
+      activarLimpiadorErrores(document.querySelector("#formCrearCama"));
+      activarLimpiadorErrores(document.querySelector("#formEditarCama"));
+
 
       // -------- QUITAR FOCUS DE MODALES SI SE OCULTAN --------
       document.querySelectorAll('.modal').forEach(modal => {
@@ -311,6 +316,8 @@ block content
 
         formCrear.addEventListener("submit", async (e) => {
           e.preventDefault();
+          removeToasts();
+
           const data = Object.fromEntries(new FormData(formCrear));
 
           const res = await fetch("/camas/crear", {
@@ -321,7 +328,10 @@ block content
 
           const json = await res.json();
           if (json.ok) location.reload();
-          else alert(json.error);
+          else {
+            toast(json.error, formCrear[json.field], "error");
+            return;
+          }
         });
       }
 
@@ -417,6 +427,7 @@ block content
 
         formEditar.addEventListener("submit", async (e) => {
           e.preventDefault();
+          removeToasts();
 
           if (user.rol=='admin') {
             const data = Object.fromEntries(new FormData(formEditar));
@@ -429,14 +440,15 @@ block content
 
             const json = await res.json();
             if (json.ok) location.reload();
-            else alert(json.error);
+            else {
+              toast(json.error, formEditar[json.field], "error");
+              return;
+            }
           }else {
             const data = Object.fromEntries(new FormData(formEditar));
 
             const id = data.id;
             const estado = data.estado;
-
-            console.log("id: ", id,", estado: ", estado);
 
             const res = await fetch(`/camas/cambiarEstado/${id}&${estado}`, {
               method: "POST",
@@ -445,7 +457,10 @@ block content
 
             const json = await res.json();
             if (json.ok) location.reload();
-            else alert(json.error);
+            else {
+              toast(json.error, formEditar.estado, "error");
+              return;
+            }
           }
         });
       }

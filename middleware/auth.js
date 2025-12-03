@@ -30,7 +30,11 @@ export function requireSelfOrAdmin() {
         if (!req.session.user) {
             return res.redirect("/users/login");
         }
-        if (req.session.user.rol != 'admin' && req.session.user.id!=req.params.id) {
+        // Normalizar tipos antes de comparar IDs para evitar falsos 403
+        const sessionId = String(req.session.user.id);
+        const paramId = String(req.params.id);
+
+        if (req.session.user.rol !== 'admin' && sessionId !== paramId) {
             return res.status(403).render("error/403", { user: req.session.user });
         }
         next();

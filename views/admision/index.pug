@@ -190,6 +190,9 @@ block content
 
   script.
     document.addEventListener("DOMContentLoaded", () => {
+      
+      // --------- Limpiador de errores toast de los formularios ---------------
+      activarLimpiadorErrores(document.querySelector("#formCrearAdmision"));
 
       // -------- QUITAR FOCUS DE MODALES SI SE OCULTAN --------
       document.querySelectorAll('.modal').forEach(modal => {
@@ -255,10 +258,8 @@ block content
 
           if (formCrear.tipoIngreso.value=='derivacion') {
             formCrear.derivadoPor.disabled = false;
-            formCrear.derivadoPor.required = true;
           }else {
             formCrear.derivadoPor.value = "";
-            formCrear.derivadoPor.required = false;
             formCrear.derivadoPor.disabled = true;
           }
 
@@ -289,10 +290,8 @@ block content
         formCrear.tipoIngreso.addEventListener("change", () => {
           if (formCrear.tipoIngreso.value=='derivacion') {
             formCrear.derivadoPor.disabled = false;
-            formCrear.derivadoPor.required = true;
           }else {
             formCrear.derivadoPor.value = "";
-            formCrear.derivadoPor.required = false;
             formCrear.derivadoPor.disabled = true;
           }
         });
@@ -367,6 +366,7 @@ block content
 
         formCrear.addEventListener("submit", async (e) => {
           e.preventDefault();
+          removeToasts();
           const data = Object.fromEntries(new FormData(formCrear));
 
           if (data.pacienteNN) {
@@ -378,7 +378,10 @@ block content
 
             const json = await res.json();
             if (json.ok) location.reload();
-            else alert(json.error);
+            else {
+              toast(json.error, formCrear[json.field], "error");
+              return;
+            }
           }else {
             const res = await fetch("/admisiones/crear", {
               method: "POST",
@@ -388,7 +391,10 @@ block content
 
             const json = await res.json();
             if (json.ok) location.reload();
-            else alert(json.error);
+            else {
+              toast(json.error, formCrear[json.field], "error");
+              return;
+            }
           }
         });
       }

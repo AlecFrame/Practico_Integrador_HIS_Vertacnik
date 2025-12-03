@@ -43,9 +43,9 @@ export const crear = async (req, res) => {
     await auditar(
         req.session.user.id,
         "Evaluación de Enfermeria",
-        evaluacion.idEvalaucionEnf,
+        evaluacion.idEvaluacionEnf,
         "Crear",
-        `Creó la Evaluación de Enfermeria#${evaluacion.idEvalaucionEnf} para la admision#${evaluacion.admisionId}`,
+        `Creó la Evaluación de Enfermeria#${evaluacion.idEvaluacionEnf} para la admision#${evaluacion.admisionId}`,
         `/admisiones/detalle/${evaluacion.admisionId}?&estadoEnf=${evaluacion.visible==1? 'activos':'inactivos'}`,
         null
     );
@@ -79,9 +79,9 @@ export const darDeBaja = async (req, res) => {
     await auditar(
         req.session.user.id,
         "Evaluación de Enfermeria",
-        evaluacion.idEvalaucionMed,
+        evaluacion.idEvaluacionEnf,
         "Dar de Baja",
-        `Dio de baja la Evaluación de Enfemeria#${evaluacion.idEvalaucionMed} de la admision#${evaluacion.admisionId}`,
+        `Dio de baja la Evaluación de Enfemeria#${evaluacion.idEvaluacionEnf} de la admision#${evaluacion.admisionId}`,
         `/admisiones/detalle/${evaluacion.admisionId}?&estadoMed=${evaluacion.visible==1? 'activos':'inactivos'}`,
         null
     );
@@ -115,9 +115,9 @@ export const darDeAlta = async (req, res) => {
     await auditar(
         req.session.user.id,
         "Evaluación de Enfermeria",
-        evaluacion.idEvalaucionMed,
+        evaluacion.idEvaluacionEnf,
         "Dar de Alta",
-        `Dio de alta la Evaluación de Enfemeria#${evaluacion.idEvalaucionMed} de la admision#${evaluacion.admisionId}`,
+        `Dio de alta la Evaluación de Enfemeria#${evaluacion.idEvaluacionEnf} de la admision#${evaluacion.admisionId}`,
         `/admisiones/detalle/${evaluacion.admisionId}?&estadoMed=${evaluacion.visible==1? 'activos':'inactivos'}`,
         null
     );

@@ -7,17 +7,17 @@ block content
     .d-flex.justify-content-between.align-items-center.mt-3
       .btn-group
         a.btn.btn-outline-primary(
-          href="/pacientes?estado=todos"
+          href=`/pacientes?estado=todos&buscar=${buscar}`
           class=estado==="todos" ? "active" : ""
         ) Todos
 
         a.btn.btn-outline-success(
-          href="/pacientes?estado=activos"
+          href=`/pacientes?estado=activos&buscar=${buscar}`
           class=estado==="activos" ? "active" : ""
         ) Activos
 
         a.btn.btn-outline-secondary(
-          href="/pacientes?estado=inactivos"
+          href=`/pacientes?estado=inactivos&buscar=${buscar}`
           class=estado==="inactivos" ? "active" : ""
         ) Inactivos
 
@@ -130,19 +130,19 @@ block content
             form#formCrearPaciente
               .mb-3
                 label.form-label Nombre
-                input.form-control(name="nombre" required)
+                input.form-control(name="nombre")
 
               .mb-3
                 label.form-label Apellido
-                input.form-control(name="apellido" required)
+                input.form-control(name="apellido")
 
               .mb-3
                 label.form-label DNI
-                input.form-control(name="dni" required)
+                input.form-control(name="dni")
 
               .mb-3
                 label.form-label Fecha de Nacimiento
-                input.form-control(type="date" name="fechaNacimiento" required)
+                input.form-control(type="date" name="fechaNacimiento")
 
               .mb-3
                 label.form-label Sexo
@@ -180,19 +180,19 @@ block content
 
               .mb-3
                 label.form-label Nombre
-                input.form-control(name="nombre" required)
+                input.form-control(name="nombre")
 
               .mb-3
                 label.form-label Apellido
-                input.form-control(name="apellido" required)
+                input.form-control(name="apellido")
 
               .mb-3
                 label.form-label DNI
-                input.form-control(name="dni" required)
+                input.form-control(name="dni")
 
               .mb-3
                 label.form-label Fecha de Nacimiento
-                input.form-control(type="date" name="fechaNacimiento" required)
+                input.form-control(type="date" name="fechaNacimiento")
 
               .mb-3
                 label.form-label Sexo
@@ -235,6 +235,10 @@ block content
 
   script.
     document.addEventListener("DOMContentLoaded", () => {
+      
+      // --------- Limpiador de errores toast de los formularios ---------------
+      activarLimpiadorErrores(document.querySelector("#formCrearPaciente"));
+      activarLimpiadorErrores(document.querySelector("#formEditarPaciente"));
 
       // -------- QUITAR FOCUS DE MODALES SI SE OCULTAN --------
       document.querySelectorAll('.modal').forEach(modal => {
@@ -250,6 +254,8 @@ block content
       if (formCrear) {
         formCrear.addEventListener("submit", async (e) => {
           e.preventDefault();
+          removeToasts();
+
           const data = Object.fromEntries(new FormData(formCrear));
 
           const res = await fetch("/pacientes/crear", {
@@ -260,7 +266,10 @@ block content
 
           const json = await res.json();
           if (json.ok) location.reload();
-          else alert(json.error);
+          else {
+            toast(json.error, formCrear[json.field], "error");
+            return;
+          }
         });
       }
 
@@ -288,6 +297,7 @@ block content
 
         formEditar.addEventListener("submit", async (e) => {
           e.preventDefault();
+          removeToasts();
 
           const data = Object.fromEntries(new FormData(formEditar));
 
@@ -299,7 +309,10 @@ block content
 
           const json = await res.json();
           if (json.ok) location.reload();
-          else alert(json.error);
+          else {
+            toast(json.error, formEditar[json.field], "error");
+            return;
+          }
         });
       }
 

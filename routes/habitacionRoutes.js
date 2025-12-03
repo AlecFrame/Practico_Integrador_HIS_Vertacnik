@@ -1,5 +1,6 @@
 import express from 'express';
 import { requireLogin, allowRoles } from '../middleware/auth.js';
+import { validarHabitacion, validarConsistenciaDeHabitaciones } from '../middleware/validations.js';
 import {
     listar, crear, actualizar, darDeBaja, darDeAlta
 } from '../controllers/habitacionController.js';
@@ -13,10 +14,9 @@ router.get('/', listar);
 
 router.use(allowRoles('admin'));
 
-router.post('/crear', crear);
-router.post('/editar/:id', actualizar);
+router.post('/crear', validarHabitacion, validarConsistenciaDeHabitaciones, crear);
+router.post('/editar/:id', validarHabitacion, validarConsistenciaDeHabitaciones, actualizar);
 router.post('/baja/:id', darDeBaja);
 router.post('/alta/:id', darDeAlta);
-
 
 export default router;

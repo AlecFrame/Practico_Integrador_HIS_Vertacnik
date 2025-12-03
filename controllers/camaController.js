@@ -1,4 +1,4 @@
-import { Unidad, Ala, Habitacion, Cama } from '../models/index.js';
+import { Admision, Unidad, Ala, Habitacion, Cama } from '../models/index.js';
 import { auditar } from '../controllers/auditoriaController.js';
 import { agregarCambio } from '../middleware/helper.js';
 import { Op } from "sequelize";
@@ -356,13 +356,21 @@ export const cambiarEstado = async (req, res) => {
             model: Ala,
             as: 'Ala',
             include: [{ model: Unidad, as: 'Unidad' }]
-          }
-        ]
-      }]
+          }]
+        }, {
+          model: Admision,
+          as: 'Admisions',
+          where: { estado: 'activa' }
+        }
+      ]
     });
 
     if (!cama) {
       return res.json({ ok: false, error: 'Cama no encontrada' });
+    }
+
+    if (cama.Admisions.length > 0) {
+      return res.json({ ok: false, field: 'estado', error: "No se puede cambiar el estado ocupado de una cama con una admision activa" });
     }
 
     await Cama.update(

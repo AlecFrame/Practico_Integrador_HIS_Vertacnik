@@ -8,7 +8,8 @@ import {
 const router = express.Router();
 
 router.use(requireLogin);
-router.post('/editar/:id', requireSelfOrAdmin, uploadAvatar.single("avatar"), actualizar);
+
+router.post('/editar/:id', uploadAvatar.single("avatar"), requireSelfOrAdmin(), actualizar);
 
 router.use(allowRoles('admin'));
 
