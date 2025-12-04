@@ -15,6 +15,9 @@ const Paciente = sequelize.define('Paciente', {
     telefono: DataTypes.STRING(15),
     direccion: DataTypes.STRING,
     obraSocial: DataTypes.STRING,
+    contactoEmergenciaNombre: DataTypes.STRING(100),
+    contactoEmergenciaTelefono: DataTypes.STRING(15),
+    contactoEmergenciaRelacion: DataTypes.STRING(50),
     visible: DataTypes.TINYINT
 });
 

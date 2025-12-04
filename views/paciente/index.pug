@@ -54,6 +54,7 @@ block content
         th Teléfono
         th Dirección
         th Obra Social
+        th Contacto de Emergencias
         th Estado
         if (['admin', 'recepcion'].includes(user.rol))
           th Acciones
@@ -69,6 +70,8 @@ block content
             td #{p.telefono}
             td #{p.direccion}
             td #{p.obraSocial || 'No especificada'}
+            - const contacto = p.contactoEmergenciaNombre? p.contactoEmergenciaNombre+" ("+p.contactoEmergenciaRelacion+"): "+p.contactoEmergenciaTelefono:'no especificado'
+            td #{contacto}
             td 
               if p.visible > 0
                 span.bg-success.text-white(style="padding: 4px 10px; border-radius: 5px;") Activo
@@ -91,6 +94,9 @@ block content
                       data-telefono=p.telefono
                       data-direccion=p.direccion
                       data-obra=p.obraSocial
+                      data-contactonombre=p.contactoEmergenciaNombre
+                      data-contactotelefono=p.contactoEmergenciaTelefono
+                      data-contactorelacion=p.contactoEmergenciaRelacion
                     ) Editar
                   button.btn.btn-sm.btn-danger.mx-1(
                     type="button"
@@ -128,6 +134,10 @@ block content
 
           .modal-body
             form#formCrearPaciente
+              
+              // ---------------- DATOS PERSONALES ----------------
+              h6.text-primary.mb-3 Datos del Paciente
+
               .mb-3
                 label.form-label Nombre
                 input.form-control(name="nombre")
@@ -147,8 +157,10 @@ block content
               .mb-3
                 label.form-label Sexo
                 select.form-control(name="sexo")
+                  option(value="" disabled selected) Seleccione...
                   option(value="M") Masculino
                   option(value="F") Femenino
+                  option(value="NN") Prefiere no decir
 
               .mb-3
                 label.form-label Teléfono
@@ -161,6 +173,23 @@ block content
               .mb-3
                 label.form-label Obra Social
                 input.form-control(name="obraSocial")
+
+              hr
+
+              // ---------------- CONTACTO DE EMERGENCIA ----------------
+              h6.text-primary.mb-3 Contacto de Emergencia
+
+              .mb-3
+                label.form-label Nombre del Contacto
+                input.form-control(name="contactoEmergenciaNombre")
+
+              .mb-3
+                label.form-label Teléfono del Contacto
+                input.form-control(name="contactoEmergenciaTelefono")
+
+              .mb-3
+                label.form-label Relación con el Paciente
+                input.form-control(name="contactoEmergenciaRelacion")
 
           .modal-footer
             button.btn.btn-secondary(type="button" data-bs-dismiss="modal") Cancelar
@@ -178,6 +207,9 @@ block content
             form#formEditarPaciente
               input(type="hidden" name="id")
 
+              // ---------------- DATOS PERSONALES ----------------
+              h6.text-primary.mb-3 Datos del Paciente
+
               .mb-3
                 label.form-label Nombre
                 input.form-control(name="nombre")
@@ -197,8 +229,10 @@ block content
               .mb-3
                 label.form-label Sexo
                 select.form-control(name="sexo")
+                  option(value="" disabled selected) Seleccione...
                   option(value="M") Masculino
                   option(value="F") Femenino
+                  option(value="NN") Prefiere no decir
 
               .mb-3
                 label.form-label Teléfono
@@ -212,9 +246,26 @@ block content
                 label.form-label Obra Social
                 input.form-control(name="obraSocial")
 
+              hr
+
+              // ---------------- CONTACTO DE EMERGENCIA ----------------
+              h6.text-primary.mb-3 Contacto de Emergencia
+
+              .mb-3
+                label.form-label Nombre del Contacto
+                input.form-control(name="contactoEmergenciaNombre")
+
+              .mb-3
+                label.form-label Teléfono del Contacto
+                input.form-control(name="contactoEmergenciaTelefono")
+
+              .mb-3
+                label.form-label Relación con el Paciente
+                input.form-control(name="contactoEmergenciaRelacion")
+
           .modal-footer
             button.btn.btn-secondary(type="button" data-bs-dismiss="modal") Cancelar
-            button.btn.btn-primary(type="submit" form="formEditarPaciente") Guardar Cambios
+            button.btn.btn-primary(type="submit" form="formEditarPaciente") Guardar
 
     //- MODAL PARA CONFIRMAR LA BAJA LOGICA
     #modalBajaPaciente.modal.fade(tabindex="-1" aria-hidden="true")
@@ -293,6 +344,9 @@ block content
           formEditar.telefono.value = button.dataset.telefono;
           formEditar.direccion.value = button.dataset.direccion;
           formEditar.obraSocial.value = button.dataset.obra || "No especificada";
+          formEditar.contactoEmergenciaNombre.value = button.dataset.contactonombre;
+          formEditar.contactoEmergenciaTelefono.value = button.dataset.contactotelefono;
+          formEditar.contactoEmergenciaRelacion.value = button.dataset.contactorelacion;
         });
 
         formEditar.addEventListener("submit", async (e) => {

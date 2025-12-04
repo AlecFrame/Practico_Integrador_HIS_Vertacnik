@@ -44,7 +44,9 @@ export const listar = async (req, res) => {
 export const crear = async (req, res) => {
     const { 
         nombre, apellido, dni, fechaNacimiento, sexo, 
-        telefono, direccion, obraSocial, visible = 1, pacienteNNId, admisionId
+        telefono, direccion, obraSocial, contactoEmergenciaNombre,
+        contactoEmergenciaTelefono, contactoEmergenciaRelacion, 
+        visible = 1, pacienteNNId, admisionId
       } = req.body;
 
     let paciente = null;
@@ -60,6 +62,9 @@ export const crear = async (req, res) => {
             telefono,
             direccion,
             obraSocial,
+            contactoEmergenciaNombre,
+            contactoEmergenciaTelefono, 
+            contactoEmergenciaRelacion, 
             visible
         });
 
@@ -118,10 +123,14 @@ export const crear = async (req, res) => {
 };
 
 export const actualizar = async (req, res) => {
-    const { nombre, apellido, dni, fechaNacimiento, sexo, telefono, direccion, obraSocial } = req.body;
+    const { 
+      nombre, apellido, dni, fechaNacimiento, sexo, telefono, direccion, obraSocial,
+      contactoEmergenciaNombre, contactoEmergenciaTelefono, contactoEmergenciaRelacion, 
+    } = req.body;
     
     try {
       const paciente = await Paciente.findByPk(req.params.id);
+
       const pacienteAntes = {
         nombre: paciente.nombre, 
         apellido: paciente.apellido, 
@@ -130,14 +139,17 @@ export const actualizar = async (req, res) => {
         sexo: paciente.sexo, 
         telefono: paciente.telefono, 
         direccion: paciente.direccion, 
-        obraSocial: paciente.obraSocial
+        obraSocial: paciente.obraSocial,
+        contactoEmergenciaNombre: paciente.contactoEmergenciaNombre,
+        contactoEmergenciaTelefono: paciente.contactoEmergenciaTelefono, 
+        contactoEmergenciaRelacion: paciente.contactoEmergenciaRelacion, 
       };
 
       if (!paciente)
         return res.json({ ok: false, error: 'No se encontro al Paciente' });
 
       await paciente.update({
-        nombre, apellido, dni, fechaNacimiento, sexo, telefono, direccion, obraSocial 
+        nombre, apellido, dni, fechaNacimiento, sexo, telefono, direccion, obraSocial, contactoEmergenciaNombre, contactoEmergenciaTelefono, contactoEmergenciaRelacion
       });
 
       const cambios = [];
@@ -149,6 +161,9 @@ export const actualizar = async (req, res) => {
       agregarCambio(cambios, "telefono", pacienteAntes.telefono, telefono);
       agregarCambio(cambios, "direccion", pacienteAntes.direccion, direccion);
       agregarCambio(cambios, "obraSocial", pacienteAntes.obraSocial, obraSocial);
+      agregarCambio(cambios, "contactoEmergenciaNombre", pacienteAntes.contactoEmergenciaNombre, contactoEmergenciaNombre);
+      agregarCambio(cambios, "contactoEmergenciaTelefono", pacienteAntes.contactoEmergenciaTelefono, contactoEmergenciaTelefono);
+      agregarCambio(cambios, "contactoEmergenciaRelacion", pacienteAntes.contactoEmergenciaRelacion, contactoEmergenciaRelacion);
 
       const descripcion = cambios.length > 0
         ? `Cambios: ${cambios.join(", ")}`

@@ -40,6 +40,25 @@ block content
             strong Cobertura: 
             | #{admision.Paciente.obraSocial || 'No especificada'}
 
+      h6.text-primary.mt-3.mb-3 Contacto de Emergencia del paciente
+
+      if (admision.Paciente.contactoEmergenciaNombre)
+        .row.mt-2 
+          .col-md-4
+            p.mb-1
+              strong Nombre: 
+              | #{admision.Paciente.contactoEmergenciaNombre}
+          .col-md-4
+            p.mb-1
+              strong Relación: 
+              | #{admision.Paciente.contactoEmergenciaRelacion}
+          .col-md-4
+            p.mb-1
+              strong Teléfono: 
+              | #{admision.Paciente.contactoEmergenciaTelefono}
+      else
+        p.mb-1.text-muted No especificado
+
       if (admision.Paciente.nombre == "NN" && user.rol=="medico")
         hr
         
@@ -711,8 +730,10 @@ block content
                 .mb-3
                   label.form-label Sexo
                   select.form-control(name="sexo")
+                    option(value="" disabled selected) Seleccione...
                     option(value="M") Masculino
                     option(value="F") Femenino
+                    option(value="NN") Prefiere no decir
 
                 .mb-3
                   label.form-label Teléfono
@@ -725,6 +746,23 @@ block content
                 .mb-3
                   label.form-label Obra Social
                   input.form-control(name="obraSocial")
+
+                hr
+
+                // ---------------- CONTACTO DE EMERGENCIA ----------------
+                h6.text-primary.mb-3 Contacto de Emergencia
+
+                .mb-3
+                  label.form-label Nombre del Contacto
+                  input.form-control(name="contactoEmergenciaNombre")
+
+                .mb-3
+                  label.form-label Teléfono del Contacto
+                  input.form-control(name="contactoEmergenciaTelefono")
+
+                .mb-3
+                  label.form-label Relación con el Paciente
+                  input.form-control(name="contactoEmergenciaRelacion")
 
           .modal-footer
             button.btn.btn-secondary(type="button" data-bs-dismiss="modal") Cancelar

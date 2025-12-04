@@ -94,8 +94,10 @@ export const validarPaciente = (req, res, next) => {
 
     telefono: Joi.string()
       .required()
+      .max(15)
       .messages({
         "string.empty": "El campo Teléfono está vacío",
+        "string.max": "El Teléfono debe tener menos de 15 caracteres",
         "any.required": "El Teléfono es obligatorio"
       }),
 
@@ -111,6 +113,37 @@ export const validarPaciente = (req, res, next) => {
       .messages({
         "string.empty": "El campo de Obra Social está vacío",
         "any.required": "La Obra Social es obligatoria"
+      }),
+
+    contactoEmergenciaNombre: Joi.string()
+      .min(2)
+      .max(100)
+      .required()
+      .messages({
+        "string.empty": "El Nombre del Contacto de Emergencia está vacío",
+        "string.min": "El Nombre del Contacto de Emergencia debe tener al menos 2 caracteres",
+        "string.max": "El Nombre del Contacto de Emergencia debe tener menos de 100 caracteres",
+        "any.required": "El Nombre del Contacto de Emergencia es obligatorio"
+      }),
+
+    contactoEmergenciaTelefono: Joi.string()
+      .required()
+      .max(15)
+      .messages({
+        "string.empty": "El Teléfono del Contacto de Emergencia está vacío",
+        "string.max": "El Teléfono del Contacto de Emergencia debe tener menos de 15 caracteres",
+        "any.required": "El Teléfono del Contacto de Emergencia es obligatorio"
+      }),
+
+    contactoEmergenciaRelacion: Joi.string()
+      .min(2)
+      .max(50)
+      .required()
+      .messages({
+        "string.empty": "La relacion del Contacto de Emergencia está vacía",
+        "string.min": "La relacion del Contacto de Emergencia debe tener al menos 2 caracteres",
+        "string.max": "La relacion del Contacto de Emergencia debe tener menos de 50 caracteres",
+        "any.required": "La relacion del Contacto de Emergencia es obligatoria"
       }),
     
     id: Joi.number().optional(),
