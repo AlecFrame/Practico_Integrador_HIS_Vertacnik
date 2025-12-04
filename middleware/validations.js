@@ -1,5 +1,5 @@
 import Joi from "joi";
-import { Paciente, Admision, Usuario, Habitacion, Ala, Cama } from "../models/index.js";
+import { Paciente, Admision, EvaluacionEnfermeria, EvaluacionMedica, Usuario, Habitacion, Ala, Cama } from "../models/index.js";
 
 export const validarDniUnico = async (req, res, next) => {
   const { dni } = req.body;
@@ -281,6 +281,66 @@ export const validarConsistenciaDeAdmisiones = async (req, res, next) => {
   next();
 };
 
+export const validarCancelarAdmision = async (req, res, next) => {
+  const { estado, id } = req.params;
+  const rol = req.session.user?.rol;
+
+  try {
+    if (!estado || !id) {
+      return res.status(400).json({ error: "Parámetros inválidos" });
+    }
+
+    // Si NO se va a cancelar, no hay que validar más nada
+    if (estado !== "cancelada") {
+      return next();
+    }
+
+    // Recepción solo puede cancelar
+    if (rol === "recepcion" && estado !== "cancelada") {
+      return res.status(403).json({
+        error: "No tiene permisos para cambiar la admisión a este estado."
+      });
+    }
+
+    // Buscar la admisión, con sus evaluaciones
+    const admision = await Admision.findByPk(id, {
+      include: [
+        { model: EvaluacionEnfermeria, as: "EvaluacionEnfermeria" },
+        { model: EvaluacionMedica, as: "EvaluacionMedicas" }
+      ]
+    });
+
+    if (!admision) {
+      return res.status(404).json({ error: "Admisión no encontrada" });
+    }
+
+    // No se puede cancelar una admisión finalizada
+    if (admision.estado === "finalizada") {
+      return res.status(400).json({
+        error: "No se puede cancelar una admisión finalizada."
+      });
+    }
+
+    // Si tiene evaluaciones - solo admin puede cancelar
+    const tieneEval =
+      (admision.EvaluacionEnfermeria &&
+        admision.EvaluacionEnfermeria.length > 0) ||
+      (admision.EvaluacionMedicas &&
+        admision.EvaluacionMedicas.length > 0);
+
+    if (tieneEval && rol !== "admin") {
+      return res.status(403).json({
+        error: "No se puede cancelar la admisión porque posee evaluaciones. Solo un administrador puede hacerlo."
+      });
+    }
+
+    next();
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Error interno del servidor." });
+  }
+};
+
 export const validarUnidad = (req, res, next) => {
   const schema = Joi.object({
     nombre: Joi.string()
@@ -436,7 +496,7 @@ export const validarCama = (req, res, next) => {
 };
 
 export const validarConsistenciaDeCamas = async (req, res, next) => {
-  const { habitacionId, id } = req.body; // id = id de la cama si es edición
+  const { habitacionId, id } = req.body;
 
   // Buscar habitación con sus camas
   const habitacion = await Habitacion.findByPk(habitacionId, {
@@ -463,8 +523,7 @@ export const validarConsistenciaDeCamas = async (req, res, next) => {
   }
 
   // Máximo según tipo de habitación
-  const maxCamas = habitacion.tipo === "individual" ? 1 :
-                   habitacion.tipo === "doble"      ? 2 : Infinity;
+  const maxCamas = habitacion.tipo === "individual"? 1 : habitacion.tipo === "doble"? 2 : Infinity;
 
   // Validación
   if (cantidadCamas >= maxCamas) {

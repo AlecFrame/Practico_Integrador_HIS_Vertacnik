@@ -40,6 +40,12 @@ export const listar = async (req, res) => {
             ]
           }
         ]
+      }, {
+        model: EvaluacionEnfermeria,
+        as: 'EvaluacionEnfermeria'
+      }, {
+        model: EvaluacionMedica,
+        as: 'EvaluacionMedicas'
       }
     ]
   });

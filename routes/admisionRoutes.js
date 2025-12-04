@@ -1,7 +1,7 @@
 import express from 'express';
 import { requireLogin, allowRoles } from '../middleware/auth.js';
 import { filtrarAlas, filtrarHabitaciones } from '../controllers/camaController.js';
-import { validarAdmision, validarConsistenciaDeAdmisiones } from '../middleware/validations.js'
+import { validarAdmision, validarCancelarAdmision, validarConsistenciaDeAdmisiones } from '../middleware/validations.js'
 import {
     listar, crear, crearNoIdentificado, cambiarEstado, filtrarCamas, filtrarPacientes, detalles
 } from '../controllers/admisionController.js';
@@ -21,6 +21,6 @@ router.use(allowRoles('admin', 'recepcion'));
 
 router.post('/crear', validarAdmision, validarConsistenciaDeAdmisiones, crear);
 router.post('/crearNN', validarAdmision, validarConsistenciaDeAdmisiones, crearNoIdentificado);
-router.post('/cambiarEstado/:id&:estado', cambiarEstado);
+router.post('/cambiarEstado/:id&:estado', validarCancelarAdmision, cambiarEstado);
 
 export default router;

@@ -387,7 +387,7 @@ block content
             ) Activar Admisión
       
       if admision.estado == 'activa'
-        if (['admin', 'recepcion'].includes(user.rol))
+        if (user.rol=='admin' || (user.rol=='recepcion' && evaluacionesEnf.length==0 && evaluacionesMed.length==0))
           button.btn.btn-danger(
             type="button"
             data-bs-toggle="modal"
