@@ -55,6 +55,11 @@ export const listar = async (req, res) => {
             ]
           }
         ]
+      }, {
+        model: Admision,
+        as: 'Admisions',
+        where: { estado: 'activa'},
+        required: false
       }
     ]
   });
@@ -360,7 +365,8 @@ export const cambiarEstado = async (req, res) => {
         }, {
           model: Admision,
           as: 'Admisions',
-          where: { estado: 'activa' }
+          where: { estado: 'activa' },
+          required: false
         }
       ]
     });

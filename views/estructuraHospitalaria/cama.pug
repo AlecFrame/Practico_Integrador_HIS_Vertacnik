@@ -100,17 +100,18 @@ block content
             if (['admin', 'enfermeria'].includes(user.rol))
               td
                 if c.visible == 1
-                  button.btn.btn-sm.btn-warning.mx-1(
-                    type="button"
-                    data-bs-toggle="modal"
-                    data-bs-target="#modalEditarCama"
-                    data-id=c.idCama
-                    data-numero=c.numero
-                    data-habitacion-id=c.Habitacion.idHabitacion
-                    data-ala-id=c.Habitacion.Ala.idAla
-                    data-unidad-id=c.Habitacion.Ala.Unidad.idUnidad
-                    data-estado=c.estado
-                  ) Editar
+                  if (c.Admisions.length==0)
+                    button.btn.btn-sm.btn-warning.mx-1(
+                      type="button"
+                      data-bs-toggle="modal"
+                      data-bs-target="#modalEditarCama"
+                      data-id=c.idCama
+                      data-numero=c.numero
+                      data-habitacion-id=c.Habitacion.idHabitacion
+                      data-ala-id=c.Habitacion.Ala.idAla
+                      data-unidad-id=c.Habitacion.Ala.Unidad.idUnidad
+                      data-estado=c.estado
+                    ) Editar
                   if (user.rol=='admin')
                     button.btn.btn-sm.btn-danger.mx-1(
                       type="button"
