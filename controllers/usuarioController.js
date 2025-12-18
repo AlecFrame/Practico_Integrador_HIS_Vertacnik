@@ -48,7 +48,7 @@ export const crear = async (req, res) => {
     const { nombre, apellido, email, rol, clave, visible = 1 } = req.body;
 
     const avatar = req.file ? `/uploads/avatars/${req.file.filename}` : null;
-    const hash = await bcrypt.hash(clave, 10);
+    const hash = await bcrypt.hash(clave, 10); 
 
     try {
         const usuario = await Usuario.create({

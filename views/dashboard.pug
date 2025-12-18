@@ -256,6 +256,14 @@ block content
                     a.btn.btn-sm.btn-info.text-white(href=a.link) Ir a #{a.entidad}
 
         if totalPagesAdmin > 1
+          nav.mt-4
+          ul.pagination
+            each n in Array(totalPagesAdmin).fill(0).map((_, i) => i + 1)
+              li.page-item(class=pageAdmin===n ? "active" : "")
+                a.page-link(
+                  href=`/users/inicio?accion=${accion}&entidad=${entidad}&fecha1=${fecha1 || ''}&fecha2=${fecha2 || ''}&page=${page}&accionAdmin=${accionAdmin}&entidadAdmin=${entidadAdmin}&fecha1Admin=${fecha1Admin || ''}&fecha2Admin=${fecha2Admin || ''}&qUsuario=${qUsuario}&pageAdmin=${n}`
+                ) #{n}
+        //
           .d-flex.align-items-center.gap-2.mt-3
             if pageAdmin===1 
               span.btn.text-white(style="background-color: #AAAAAA") Anterior

@@ -12,7 +12,7 @@ export const loginPost = async (req, res) => {
     const usuario = await Usuario.findOne({ where: { email } });
 
     if (!usuario) {
-        return res.render("login", { error: "Usuario no encontrado" });
+        return res.render("login", { error: "Usuario no encontrado" }); // Todos los mensajes deben ser iguales
     }
 
     if (usuario.visible === 0) {
@@ -21,7 +21,7 @@ export const loginPost = async (req, res) => {
 
     // usuario.clave = hash almacenado en BD
     const coincide = await bcrypt.compare(password, usuario.clave);
-
+    // Tiempo
     if (!coincide) {
         return res.render("login", { error: "Contraseña incorrecta" });
     }
